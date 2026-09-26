@@ -1,0 +1,47 @@
+[
+  {
+    "id": "usr_robshs",
+    "username": "RobsHs",
+    "salt": "eb0352741cb5568bc8bde02bd534bebc",
+    "hash": "179568e8e6035452bf8634681b83a2dfc135baf0be075ea88656564578b45850d88e8cd600ac6cea18a7b1feb83070963865449592d8017a8348f3297b9abdae",
+    "role": "Lead Architect & Developer",
+    "createdAt": "2026-10-10T10:20:51.974Z",
+    "lastLogin": "2026-10-10T10:44:35.785Z"
+  },
+  {
+    "id": "usr_318fa79640185615",
+    "username": "ABCD",
+    "salt": "6bdc91bd75b12267d87e8eef17e91af8",
+    "hash": "2cbb0d8f5b2e1c463b4985d345b97bcf8aeb27445b094a6254fa7a828582669fce0de38cc381a140aea929b7a29cf08a0f79d2f5769f202844c9a900b4945f3b",
+    "role": "Member",
+    "createdAt": "2026-10-10T10:22:12.274Z",
+    "lastLogin": "2026-10-10T10:22:12.387Z"
+  },
+  {
+    "id": "usr_bf70982d6661a14e",
+    "username": "testuser1",
+    "salt": "5da39407a69a086f317bc05fddc43b6d",
+    "hash": "1637e0326850acc5a00d4a82a7dd93b8efefe35f05007f842b7023e6a76ffd6949892c619ca6348f94f18d15f6696dab4c8c03ea32b06b46c6b2733e8c45a4d0",
+    "role": "Member",
+    "createdAt": "2026-10-10T10:24:59.550Z",
+    "lastLogin": "2026-10-10T10:24:59.603Z"
+  },
+  {
+    "id": "usr_e7b64c41895f9cd3",
+    "username": "testuser2",
+    "salt": "871cf3fd1d3f242ef455c6c3286fb4d7",
+    "hash": "fff8c41fbd9eda33a7279e71e40342785a288617dbd0f96b89a33c26e3ff474d54dd00527a87aa7461f417bb5e0beb8ef458e79ca6f73ab74c7b57e6df6a7ceb",
+    "role": "Member",
+    "createdAt": "2026-10-10T10:24:59.582Z",
+    "lastLogin": "2026-10-10T10:24:59.582Z"
+  },
+  {
+    "id": "usr_083d81e454770251",
+    "username": "ABC",
+    "salt": "af07c63b59880af660a5af5ba5636199",
+    "hash": "cd2a287d820000775d5006ca3411fa7dcae31fc3134cf5bb0945be905cca596e990c1ec47c8bb9e1f2125f6f840dcfa16d962990763cfc730006694e248514cf",
+    "role": "Member",
+    "createdAt": "2026-10-10T10:26:13.916Z",
+    "lastLogin": "2026-10-10T10:26:13.917Z"
+  }
+]

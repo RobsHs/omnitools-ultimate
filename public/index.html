@@ -1,0 +1,1806 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OmniTools Ultimate | 20+ Premium Web Utilities</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#3b82f6",
+              primaryHover: "#2563eb",
+              themeBg: "var(--bg-main)",
+              themeSurface: "var(--bg-surface)",
+              themeInput: "var(--bg-input)",
+              themeCode: "var(--bg-code)",
+              themeText: "var(--text-main)",
+              themeMuted: "var(--text-muted)",
+              themeBorder: "var(--border-color)",
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              mono: [
+                "ui-monospace",
+                "SFMono-Regular",
+                "Menlo",
+                "Monaco",
+                "Consolas",
+                "monospace",
+              ],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Google Fonts & Phosphor Icons -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Essential External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body
+    class="bg-themeBg text-themeText font-sans h-screen flex overflow-hidden selection:bg-primary selection:text-white transition-colors duration-300">
+    <!-- Ambient Aurora Canvas for iOS 26 Liquid Glass -->
+    <div class="ambient-canvas">
+      <div class="ambient-orb ambient-orb-1"></div>
+      <div class="ambient-orb ambient-orb-2"></div>
+      <div class="ambient-orb ambient-orb-3"></div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- CYBER GLASS AUTHENTICATION GATE (LOGIN / REGISTER) -->
+    <!-- ============================================== -->
+    <div id="auth-gate" class="auth-gate">
+      <div class="auth-card">
+        <!-- Brand Header -->
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-400 font-bold font-mono text-base shadow-sm shadow-blue-500/30">
+            π
+          </div>
+          <div class="font-extrabold tracking-wider text-sm">
+            <span class="text-white">OMNITOOLS</span> <span class="text-blue-400">ROBSHS</span>
+          </div>
+        </div>
+
+        <!-- Auth Heading -->
+        <h2 id="auth-main-title" class="text-2xl sm:text-3xl font-black text-white tracking-wide uppercase mb-1.5 font-sans">
+          LOGIN WITH
+        </h2>
+        <p class="text-xs text-slate-400 mb-6 font-normal">
+          Sign in to your account or create a new one to access all tools.
+        </p>
+
+        <!-- Tab Toggle Pills -->
+        <div class="flex items-center gap-3 p-1 rounded-full bg-slate-900/60 border border-white/10 mb-6">
+          <button type="button" id="tab-login-btn" onclick="setAuthTab('login')" class="auth-tab-btn active">
+            <i class="ph-fill ph-user text-base"></i> LOGIN
+          </button>
+          <button type="button" id="tab-register-btn" onclick="setAuthTab('register')" class="auth-tab-btn">
+            <i class="ph-fill ph-user-plus text-base"></i> REGISTER
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" onsubmit="handleAuthLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-widest mb-1.5 pl-3">
+              USERNAME
+            </label>
+            <input
+              type="text"
+              id="login-username"
+              required
+              autocomplete="username"
+              placeholder="Enter your username"
+              class="auth-input-pill"
+            />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-widest mb-1.5 pl-3">
+              PASSWORD
+            </label>
+            <div class="relative">
+              <input
+                type="password"
+                id="login-password"
+                required
+                autocomplete="current-password"
+                placeholder="Enter your password"
+                class="auth-input-pill pr-11"
+              />
+              <button
+                type="button"
+                onclick="togglePasswordVisibility('login-password', this)"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 transition-colors p-1"
+              >
+                <i class="ph ph-eye text-lg"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-xs text-slate-300 pt-1 px-2">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" id="login-remember" checked class="w-4 h-4 rounded bg-slate-800 border-slate-600 text-blue-500 focus:ring-0" />
+              <span>Remember me</span>
+            </label>
+            <a href="javascript:void(0)" onclick="handleForgotPassword()" class="text-blue-400 hover:text-blue-300 transition-colors">
+              Forgot password?
+            </a>
+          </div>
+
+          <button type="submit" id="login-submit-btn" class="auth-submit-btn mt-6">
+            <span>LOGIN</span> <i class="ph-bold ph-caret-right text-base"></i>
+          </button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" onsubmit="handleAuthRegister(event)" class="space-y-4 hidden">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-widest mb-1.5 pl-3">
+              USERNAME
+            </label>
+            <input
+              type="text"
+              id="reg-username"
+              required
+              autocomplete="username"
+              placeholder="Choose your username"
+              class="auth-input-pill"
+            />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-widest mb-1.5 pl-3">
+              PASSWORD
+            </label>
+            <div class="relative">
+              <input
+                type="password"
+                id="reg-password"
+                required
+                autocomplete="new-password"
+                placeholder="Min. 6 characters"
+                class="auth-input-pill pr-11"
+              />
+              <button
+                type="button"
+                onclick="togglePasswordVisibility('reg-password', this)"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 transition-colors p-1"
+              >
+                <i class="ph ph-eye text-lg"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-widest mb-1.5 pl-3">
+              CONFIRM PASSWORD
+            </label>
+            <div class="relative">
+              <input
+                type="password"
+                id="reg-confirm-password"
+                required
+                autocomplete="new-password"
+                placeholder="Repeat your password"
+                class="auth-input-pill pr-11"
+              />
+              <button
+                type="button"
+                onclick="togglePasswordVisibility('reg-confirm-password', this)"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 transition-colors p-1"
+              >
+                <i class="ph ph-eye text-lg"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" id="reg-submit-btn" class="auth-submit-btn mt-6">
+            <span>REGISTER</span> <i class="ph-bold ph-caret-right text-base"></i>
+          </button>
+        </form>
+
+        <!-- Auth Footer -->
+        <div class="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+          <a href="https://github.com/robshs" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition-colors flex items-center gap-1.5">
+            <i class="ph-bold ph-github-logo text-sm"></i>
+            <span>© 2026 OMNITOOLS ROBsHs</span>
+          </a>
+          <span class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 font-bold">V2.4</span>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="mobile-overlay"
+      class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"
+      onclick="toggleSidebar()"></div>
+
+    <aside
+      id="sidebar"
+      class="bg-themeSurface w-64 h-full flex flex-col transition-all duration-300 ease-in-out fixed lg:static z-50 transform -translate-x-full lg:translate-x-0 border-r lg:border border-themeBorder shadow-2xl shrink-0 overflow-hidden">
+      <div
+        class="h-16 shrink-0 flex items-center px-6 justify-between bg-themeSurface sticky top-0 z-10">
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2 text-themeText font-bold text-lg tracking-tight">
+            <i class="ph-fill ph-hexagon text-primary text-2xl"></i> OmniTools
+            <span class="text-[10px] font-bold bg-primary/15 text-primary px-1.5 py-0.5 rounded-full border border-primary/25">ULTIMATE</span>
+          </div>
+          <span class="text-[10px] text-themeMuted tracking-wider font-semibold pl-8 -mt-0.5">by RobsHs</span>
+        </div>
+        <button
+          class="lg:hidden text-themeMuted hover:text-themeText"
+          onclick="toggleSidebar()">
+          <i class="ph ph-x text-xl"></i>
+        </button>
+      </div>
+
+      <div
+        class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 custom-scrollbar pb-24">
+        <a
+          href="#"
+          onclick="switchTab('dashboard', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-primary bg-primary/10 font-medium"
+          data-target="dashboard"
+          ><i class="ph ph-squares-four text-lg"></i>
+          <span>Dashboard</span></a
+        >
+
+        <p
+          class="px-3 text-[10px] font-bold text-themeMuted uppercase tracking-widest mb-1 mt-5">
+          Network & Web
+        </p>
+        <a
+          href="#"
+          onclick="switchTab('ip-checker', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="ip-checker"
+          ><i class="ph ph-globe text-lg"></i> <span>IP Check</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('website-inspector', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="website-inspector"
+          ><i class="ph ph-browser text-lg"></i> <span>Domain to IP</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('dns-checker', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="dns-checker"
+          ><i class="ph ph-hard-drives text-lg"></i> <span>DNS Lookup</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('domain-checker', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="domain-checker"
+          ><i class="ph ph-magnifying-glass text-lg"></i>
+          <span>Domain Check</span></a
+        >
+
+        <p
+          class="px-3 text-[10px] font-bold text-themeMuted uppercase tracking-widest mb-1 mt-5">
+          Media & Links
+        </p>
+        <a
+          href="#"
+          onclick="switchTab('link-bypass', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="link-bypass"
+          ><i class="ph ph-link-break text-lg text-orange-500"></i>
+          <span>Link Bypasser</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('media-downloader', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="media-downloader"
+          ><i class="ph ph-youtube-logo text-lg text-red-500"></i>
+          <span>Video Downloader</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('spotify-downloader', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="spotify-downloader"
+          ><i class="ph ph-spotify-logo text-lg text-green-500"></i>
+          <span>Spotify Downloader</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('public-image', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="public-image"
+          ><i class="ph ph-image-square text-lg text-blue-500"></i>
+          <span>Image to URL</span></a
+        >
+
+        <p
+          class="px-3 text-[10px] font-bold text-themeMuted uppercase tracking-widest mb-1 mt-5">
+          Developer Core
+        </p>
+        <a
+          href="#"
+          onclick="switchTab('source-viewer', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="source-viewer"
+          ><i class="ph ph-file-zip text-lg text-yellow-500"></i>
+          <span>Source to ZIP</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('json-formatter', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="json-formatter"
+          ><i class="ph ph-brackets-curly text-lg text-yellow-500"></i>
+          <span>JSON Formatter</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('jwt-decoder', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="jwt-decoder"
+          ><i class="ph ph-key text-lg text-pink-500"></i>
+          <span>JWT Decoder</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('hash-generator', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="hash-generator"
+          ><i class="ph ph-hash text-lg text-themeMuted"></i>
+          <span>Hash Generator</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('xss-sanitizer', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="xss-sanitizer"
+          ><i class="ph ph-shield-check text-lg"></i>
+          <span>XSS Sanitizer</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('base64', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="base64"
+          ><i class="ph ph-arrows-left-right text-lg"></i>
+          <span>Base64 Tool</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('url-encoder', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="url-encoder"
+          ><i class="ph ph-link text-lg"></i> <span>URL Encode/Decode</span></a
+        >
+
+        <p
+          class="px-3 text-[10px] font-bold text-themeMuted uppercase tracking-widest mb-1 mt-5">
+          Utilities
+        </p>
+        <a
+          href="#"
+          onclick="switchTab('qr-generator', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="qr-generator"
+          ><i class="ph ph-qr-code text-lg"></i> <span>QR Code Maker</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('password-generator', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="password-generator"
+          ><i class="ph ph-password text-lg text-yellow-500"></i>
+          <span>Password Gen</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('text-toolkit', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="text-toolkit"
+          ><i class="ph ph-text-t text-lg text-primary"></i>
+          <span>Text Toolkit</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('markdown-preview', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="markdown-preview"
+          ><i class="ph ph-markdown-logo text-lg text-blue-500"></i>
+          <span>Markdown Preview</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('color-converter', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="color-converter"
+          ><i class="ph ph-palette text-lg text-emerald-500"></i>
+          <span>Color Converter</span></a
+        >
+
+        <p
+          class="px-3 text-[10px] font-bold text-themeMuted uppercase tracking-widest mb-1 mt-5">
+          AI Tools ✨
+        </p>
+        <a
+          href="#"
+          onclick="switchTab('ai-regex', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="ai-regex"
+          ><i class="ph ph-magic-wand text-lg text-purple-500"></i>
+          <span>AI Regex Builder</span></a
+        >
+        <a
+          href="#"
+          onclick="switchTab('ai-code', this)"
+          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          data-target="ai-code"
+          ><i class="ph ph-terminal-window text-lg text-blue-500"></i>
+          <span>AI Code Explainer</span></a
+        >
+      </div>
+
+      <!-- Developer Profile / GitHub Card in Sidebar -->
+      <div class="p-3 border-t border-themeBorder bg-themeSurface/50 mt-auto shrink-0">
+        <a
+          href="https://github.com/robshs"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-3 p-2 rounded-xl hover:bg-themeInput transition-all group border border-themeBorder/40">
+          <div class="w-8 h-8 rounded-lg bg-slate-900 dark:bg-white/10 text-white flex items-center justify-center font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
+            <i class="ph-bold ph-github-logo text-lg"></i>
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span class="text-xs font-bold text-themeText group-hover:text-primary transition-colors truncate">RobsHs</span>
+            <span class="text-[10px] text-themeMuted font-mono truncate">github.com/robshs</span>
+          </div>
+          <i class="ph ph-arrow-up-right text-xs text-themeMuted ml-auto group-hover:text-primary"></i>
+        </a>
+      </div>
+    </aside>
+
+    <main
+      class="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-transparent z-10 transition-colors duration-300">
+      <header
+        class="h-16 shrink-0 bg-themeSurface border border-themeBorder flex items-center justify-between px-4 sm:px-6 z-20 shadow-sm transition-all duration-300">
+        <div class="flex items-center gap-4">
+          <button
+            class="lg:hidden text-themeMuted hover:text-themeText p-2 -ml-2 rounded-lg"
+            onclick="toggleSidebar()">
+            <i class="ph ph-list text-2xl"></i>
+          </button>
+          <h1
+            id="page-title"
+            class="text-xl font-bold text-themeText tracking-tight">
+            Dashboard
+          </h1>
+        </div>
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- GitHub Direct Link Pill -->
+          <a
+            href="https://github.com/robshs"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 dark:bg-white/10 hover:bg-slate-800 dark:hover:bg-white/20 border border-slate-700/50 dark:border-white/20 text-xs font-semibold text-white transition-all shadow-sm">
+            <i class="ph-bold ph-github-logo text-sm"></i>
+            <span>github.com/robshs</span>
+            <i class="ph ph-arrow-up-right text-[10px]"></i>
+          </a>
+
+          <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
+            <i class="ph-fill ph-seal-check text-blue-500 text-sm"></i>
+            <span>Dev: <strong class="text-themeText font-bold">RobsHs</strong></span>
+          </div>
+
+          <button
+            onclick="toggleTheme()"
+            title="Toggle Dark/Light Mode"
+            class="text-themeMuted hover:text-primary p-2 rounded-lg hover:bg-themeInput transition-colors">
+            <i id="theme-icon" class="ph-fill ph-moon text-xl"></i>
+          </button>
+
+          <!-- Performance Mode / Eco-Glass Toggle for Potato PC & Mobile -->
+          <button
+            id="perf-mode-btn"
+            onclick="togglePerformanceMode()"
+            title="Toggle Eco-Glass / Performance Mode (Ringan untuk HP & Laptop)"
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-themeMuted hover:text-amber-500 hover:bg-themeInput transition-colors text-xs font-semibold">
+            <i id="perf-mode-icon" class="ph-bold ph-lightning text-base"></i>
+            <span id="perf-mode-text" class="hidden sm:inline">Eco Glass</span>
+          </button>
+
+          <!-- Logged in User Pill & Logout Button -->
+          <div id="header-user-pill" class="flex items-center gap-2 pl-2 border-l border-themeBorder">
+            <div class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-themeText">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span id="header-username">ABC</span>
+            </div>
+            <button
+              onclick="handleLogout()"
+              title="Logout from session"
+              class="p-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold">
+              <i class="ph ph-sign-out text-base"></i>
+              <span class="hidden md:inline">Logout</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div
+        class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar relative">
+        <div
+          id="toast-container"
+          class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+                <section id="dashboard" class="tool-section fade-in space-y-8">
+          <!-- Executive Hero Card -->
+          <div class="glass-hero p-6 sm:p-10 border border-themeBorder shadow-lg">
+            <div class="max-w-4xl">
+              <!-- Badges Strip -->
+              <div class="flex flex-wrap items-center gap-3 mb-4">
+                <!-- Developer Verified Pill -->
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-600 dark:text-blue-400 text-xs font-semibold tracking-wide shadow-sm backdrop-blur-md">
+                  <i class="ph-fill ph-seal-check text-blue-500 text-base"></i>
+                  <span>Engineered & Developed by <strong class="text-themeText font-bold">RobsHs</strong></span>
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5"></span>
+                </div>
+
+                <!-- GitHub Direct Link Pill -->
+                <a
+                  href="https://github.com/robshs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 text-white dark:bg-white/10 hover:bg-slate-800 dark:hover:bg-white/20 border border-slate-700/50 dark:border-white/20 text-xs font-semibold shadow-sm transition-all hover:scale-105">
+                  <i class="ph-bold ph-github-logo text-base"></i>
+                  <span>github.com/robshs</span>
+                  <i class="ph ph-arrow-up-right text-[10px]"></i>
+                </a>
+              </div>
+
+              <!-- Hero Title -->
+              <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-themeText tracking-tight mb-3">
+                OmniTools <span class="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">Ultimate</span>
+              </h1>
+              
+              <!-- Value Proposition -->
+              <p class="text-themeMuted text-sm sm:text-base leading-relaxed mb-8 max-w-3xl font-normal">
+                High-performance developer workstation & media extraction suite. 22 production-grade native cloud utilities running on an active Node.js / Express backend with zero mock dependencies, real-time 128k/320k audio streaming, and Google Gemini 3.5 Flash neural models.
+              </p>
+
+              <!-- Live Telemetry Badges Strip -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="p-3.5 rounded-xl bg-themeInput/60 border border-themeBorder flex flex-col">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-themeMuted">Runtime Engine</span>
+                  </div>
+                  <span class="text-sm font-bold text-themeText">Express 2.0 Live</span>
+                  <span class="text-[11px] text-emerald-500 font-mono mt-0.5">Active :3005</span>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-themeInput/60 border border-themeBorder flex flex-col">
+                  <div class="flex items-center gap-2 mb-1">
+                    <i class="ph-fill ph-waveform text-emerald-500 text-sm"></i>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-themeMuted">Media Pipeline</span>
+                  </div>
+                  <span class="text-sm font-bold text-themeText">Zero-Mock Stream</span>
+                  <span class="text-[11px] text-themeMuted font-mono mt-0.5">128k & 320k MP3</span>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-themeInput/60 border border-themeBorder flex flex-col">
+                  <div class="flex items-center gap-2 mb-1">
+                    <i class="ph-fill ph-sparkle text-blue-500 text-sm"></i>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-themeMuted">Neural Intelligence</span>
+                  </div>
+                  <span class="text-sm font-bold text-themeText">Gemini 3.5 Flash</span>
+                  <span class="text-[11px] text-blue-500 font-mono mt-0.5">Code & Regex AI</span>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-themeInput/60 border border-themeBorder flex flex-col">
+                  <div class="flex items-center gap-2 mb-1">
+                    <i class="ph-fill ph-squares-four text-purple-500 text-sm"></i>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-themeMuted">Total Modules</span>
+                  </div>
+                  <span class="text-sm font-bold text-themeText">22 Active Tools</span>
+                  <span class="text-[11px] text-purple-500 font-mono mt-0.5">100% Operational</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- DATA PERANGKAT (Image 1 Reference) -->
+          <!-- ============================================== -->
+          <div class="space-y-4">
+            <!-- Centered Header with Pill -->
+            <div class="relative flex items-center justify-center my-3">
+              <div class="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent"></div>
+              <div class="relative z-10">
+                <span class="device-badge-pill">DATA PERANGKAT</span>
+              </div>
+            </div>
+
+            <!-- 4 Device Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <!-- Card 1: USER -->
+              <div class="device-card">
+                <div class="device-icon-box">
+                  <i class="ph-fill ph-user text-xl"></i>
+                </div>
+                <div class="device-label">USER</div>
+                <div id="device-user-display" class="device-val truncate font-mono">ABC</div>
+              </div>
+
+              <!-- Card 2: PERANGKAT -->
+              <div class="device-card">
+                <div class="device-icon-box">
+                  <i id="device-os-icon" class="ph-fill ph-desktop text-xl"></i>
+                </div>
+                <div class="device-label">PERANGKAT</div>
+                <div id="device-os-display" class="device-val truncate">Windows</div>
+              </div>
+
+              <!-- Card 3: BATERAI -->
+              <div class="device-card">
+                <div class="device-icon-box">
+                  <i id="device-battery-icon" class="ph-fill ph-battery-charging text-xl"></i>
+                </div>
+                <div class="device-label">BATERAI</div>
+                <div id="device-battery-display" class="device-val text-blue-500 dark:text-blue-400 font-mono text-base sm:text-lg">
+                  100% (charging)
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-slate-800/80 rounded-full h-1.5 mt-2.5 overflow-hidden border border-slate-300/40 dark:border-blue-500/20">
+                  <div id="device-battery-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-1.5 rounded-full transition-all duration-500" style="width: 100%"></div>
+                </div>
+              </div>
+
+              <!-- Card 4: ROLE -->
+              <div class="device-card">
+                <div class="device-icon-box">
+                  <i class="ph-fill ph-shield-check text-xl"></i>
+                </div>
+                <div class="device-label">ROLE</div>
+                <div id="device-role-display" class="device-val truncate">Member</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section Label (Modern & Borderless) -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="ph-fill ph-command text-primary text-lg"></i>
+              <h2 class="text-base font-bold text-themeText tracking-tight">Executive Tool Command Center</h2>
+            </div>
+            <span class="text-xs text-themeMuted font-medium">Click any module to launch</span>
+          </div>
+
+          <!-- Bento Grid Architecture -->
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            <!-- Bento Card 1: AI Neural Intelligence Hub -->
+            <div class="bento-card p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                    <i class="ph-fill ph-sparkle text-2xl"></i>
+                  </div>
+                  <span class="text-[10px] font-bold text-blue-500 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/25">Gemini 3.5 Flash</span>
+                </div>
+                <h3 class="font-bold text-lg text-themeText tracking-tight mb-1.5">AI Neural Intelligence Core</h3>
+                <p class="text-xs text-themeMuted leading-relaxed mb-5">
+                  Deep context code comprehension, syntax bug fixing, and automated high-accuracy regular expression synthesis without mock latency.
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2 pt-2">
+                <button onclick="navigateToTool('ai-code')" class="bento-pill-btn">
+                  <i class="ph-fill ph-code text-blue-500"></i> AI Code Explainer
+                </button>
+                <button onclick="navigateToTool('ai-regex')" class="bento-pill-btn">
+                  <i class="ph-fill ph-brackets-curly text-indigo-500"></i> AI Regex Generator
+                </button>
+              </div>
+            </div>
+
+            <!-- Bento Card 2: Universal Media & Music Engine -->
+            <div class="bento-card p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                    <i class="ph-fill ph-waveform text-2xl"></i>
+                  </div>
+                  <span class="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/25">yt-dlp Streamer</span>
+                </div>
+                <h3 class="font-bold text-lg text-themeText tracking-tight mb-1.5">Media & Audio Stream Extraction</h3>
+                <p class="text-xs text-themeMuted leading-relaxed mb-5">
+                  Direct backend extraction for YouTube and TikTok. Offers genuine 128kbps MP3 for older legacy devices and 320kbps HD audio alongside 720p MP4.
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2 pt-2">
+                <button onclick="navigateToTool('media-downloader')" class="bento-pill-btn">
+                  <i class="ph-fill ph-youtube-logo text-red-500"></i> Video Downloader
+                </button>
+                <button onclick="navigateToTool('spotify-downloader')" class="bento-pill-btn">
+                  <i class="ph-fill ph-spotify-logo text-emerald-500"></i> Spotify Audio
+                </button>
+              </div>
+            </div>
+
+            <!-- Bento Card 3: Cyber & Network Diagnostics -->
+            <div class="bento-card p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-cyan-500/20">
+                    <i class="ph-fill ph-globe-hemisphere-west text-2xl"></i>
+                  </div>
+                  <span class="text-[10px] font-bold text-cyan-500 bg-cyan-500/10 px-2.5 py-1 rounded-full border border-cyan-500/25">Native DNS & WHOIS</span>
+                </div>
+                <h3 class="font-bold text-lg text-themeText tracking-tight mb-1.5">Network Recon & DNS Suite</h3>
+                <p class="text-xs text-themeMuted leading-relaxed mb-5">
+                  Inspect authoritative DNS records (A, AAAA, MX, TXT), perform real WHOIS domain queries, and identify public client IP data.
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2 pt-2">
+                <button onclick="navigateToTool('dns-lookup')" class="bento-pill-btn">
+                  <i class="ph-fill ph-tree-structure text-cyan-500"></i> DNS Resolver
+                </button>
+                <button onclick="navigateToTool('domain-checker')" class="bento-pill-btn">
+                  <i class="ph-fill ph-magnifying-glass text-blue-500"></i> Domain Checker
+                </button>
+                <button onclick="navigateToTool('ip-checker')" class="bento-pill-btn">
+                  <i class="ph-fill ph-globe text-indigo-500"></i> IP Check
+                </button>
+              </div>
+            </div>
+
+            <!-- Bento Card 4: Cloud CDN & Source Scraper -->
+            <div class="bento-card p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-violet-600 flex items-center justify-center text-white shadow-md shadow-purple-500/20">
+                    <i class="ph-fill ph-cloud-arrow-up text-2xl"></i>
+                  </div>
+                  <span class="text-[10px] font-bold text-purple-500 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/25">ImgBB & CORS Proxy</span>
+                </div>
+                <h3 class="font-bold text-lg text-themeText tracking-tight mb-1.5">Cloud Hosting & Web Scraper</h3>
+                <p class="text-xs text-themeMuted leading-relaxed mb-5">
+                  Deploy images to ImgBB CDN with instant direct URLs, or scrape external websites via backend CORS proxy and download full source code as .ZIP.
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2 pt-2">
+                <button onclick="navigateToTool('image-to-url')" class="bento-pill-btn">
+                  <i class="ph-fill ph-image text-purple-500"></i> Image to Cloud URL
+                </button>
+                <button onclick="navigateToTool('source-viewer')" class="bento-pill-btn">
+                  <i class="ph-fill ph-file-zip text-yellow-500"></i> Source to ZIP
+                </button>
+              </div>
+            </div>
+
+            <!-- Bento Card 5: Link Security & Autonomous Bypasser -->
+            <div class="bento-card p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-md shadow-amber-500/20">
+                    <i class="ph-fill ph-shield-check text-2xl"></i>
+                  </div>
+                  <span class="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/25">Autonomous Unshorten</span>
+                </div>
+                <h3 class="font-bold text-lg text-themeText tracking-tight mb-1.5">Universal Link Bypasser</h3>
+                <p class="text-xs text-themeMuted leading-relaxed mb-5">
+                  Autonomously traverses multi-hop redirect chains, decrypting adfly, bitly, linkvertise, and URL trackers directly to destination links.
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2 pt-2">
+                <button onclick="navigateToTool('link-bypasser')" class="bento-pill-btn">
+                  <i class="ph-fill ph-arrow-square-out text-amber-500"></i> Launch Bypasser
+                </button>
+                <button onclick="navigateToTool('password-generator')" class="bento-pill-btn">
+                  <i class="ph-fill ph-lock-key text-pink-500"></i> Passwords
+                </button>
+              </div>
+            </div>
+
+            <!-- Bento Card 6: Developer Matrix & Cryptography -->
+            <div class="bento-card p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-md shadow-pink-500/20">
+                    <i class="ph-fill ph-key text-2xl"></i>
+                  </div>
+                  <span class="text-[10px] font-bold text-pink-500 bg-pink-500/10 px-2.5 py-1 rounded-full border border-pink-500/25">Client Crypto Matrix</span>
+                </div>
+                <h3 class="font-bold text-lg text-themeText tracking-tight mb-1.5">Tokens, Hashes & Serialization</h3>
+                <p class="text-xs text-themeMuted leading-relaxed mb-5">
+                  Decode and verify JSON Web Tokens, compute SHA-256/MD5 cryptographic hashes, and beautify minified JSON structures securely.
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2 pt-2">
+                <button onclick="navigateToTool('jwt-decoder')" class="bento-pill-btn">
+                  <i class="ph-fill ph-key text-pink-500"></i> JWT Decoder
+                </button>
+                <button onclick="navigateToTool('hash-generator')" class="bento-pill-btn">
+                  <i class="ph-fill ph-fingerprint text-rose-500"></i> Hash Generator
+                </button>
+                <button onclick="navigateToTool('json-formatter')" class="bento-pill-btn">
+                  <i class="ph-fill ph-code-block text-blue-500"></i> JSON Formatter
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Developer Signature & Executive Architecture Footer -->
+          <div class="glass-hero p-6 sm:p-8 mt-4 flex flex-col md:flex-row items-center justify-between gap-6 border border-themeBorder">
+            <div class="flex items-center gap-4 text-center md:text-left">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shrink-0">
+                <i class="ph-fill ph-shield-star text-2xl"></i>
+              </div>
+              <div>
+                <div class="flex items-center justify-center md:justify-start gap-2">
+                  <h4 class="font-bold text-themeText text-lg tracking-tight">OmniTools Ultimate</h4>
+                  <span class="text-xs bg-emerald-500/15 text-emerald-500 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/25">v2.4 Production</span>
+                </div>
+                <p class="text-xs sm:text-sm text-themeMuted mt-1">
+                  Engineered and developed with precision by <strong class="text-themeText font-semibold">RobsHs</strong>. Built with Apple iOS 26 translucent glassmorphism & zero mock services.
+                </p>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-2">
+              <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-themeInput/70 text-themeMuted border border-themeBorder">Node.js Express</span>
+              <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-themeInput/70 text-themeMuted border border-themeBorder">Gemini 3.5 AI</span>
+              <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-themeInput/70 text-themeMuted border border-themeBorder">yt-dlp 128k</span>
+              <a
+                href="https://github.com/robshs"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white dark:bg-white/10 hover:bg-slate-800 dark:hover:bg-white/20 border border-slate-700/50 dark:border-white/20 flex items-center gap-1.5 transition-all shadow-sm">
+                <i class="ph-bold ph-github-logo text-sm"></i>
+                <span>github.com/robshs</span>
+              </a>
+              <span class="px-3 py-1.5 rounded-xl text-xs font-bold bg-primary/15 text-primary border border-primary/25">Dev: RobsHs</span>
+            </div>
+          </div>
+        </section>
+
+        <section id="ip-checker" class="tool-section hidden">
+          <div
+            class="max-w-2xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-8 text-center shadow-sm">
+            <h2 class="text-2xl font-bold text-themeText mb-2">
+              Public IP Address
+            </h2>
+            <div id="ip-loading" class="py-10">
+              <span class="loader w-10 h-10"></span>
+            </div>
+            <div id="ip-result" class="hidden flex-col items-center">
+              <div
+                class="bg-themeInput rounded-xl p-6 border border-themeBorder w-full mb-4 relative group">
+                <p
+                  id="ip-address-display"
+                  class="text-4xl sm:text-5xl font-mono text-primary font-bold">
+                  ...
+                </p>
+                <button
+                  onclick="copyText('ip-address-display', 'IP Copied!')"
+                  class="absolute top-4 right-4 p-2 bg-themeCode rounded text-themeText opacity-0 group-hover:opacity-100 transition-opacity">
+                  <i class="ph ph-copy"></i>
+                </button>
+              </div>
+              <button
+                onclick="fetchIP()"
+                class="bg-primary hover:bg-primaryHover text-white px-6 py-2 rounded-lg font-medium">
+                Refresh IP
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section id="website-inspector" class="tool-section hidden">
+          <div
+            class="max-w-3xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 shadow-sm">
+            <h2 class="text-xl font-bold text-themeText mb-6">
+              Domain to IP (Resolver)
+            </h2>
+            <form
+              onsubmit="handleWebInspector(event)"
+              class="flex flex-col sm:flex-row gap-4 mb-6">
+              <input
+                type="text"
+                id="inspect-domain"
+                required
+                placeholder="example.com"
+                class="flex-1 bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 outline-none focus:border-primary" /><button
+                type="submit"
+                id="btn-inspect"
+                class="bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg px-8 py-3 w-full sm:w-auto">
+                Resolve
+              </button>
+            </form>
+            <div
+              id="inspect-result"
+              class="hidden bg-themeInput border border-themeBorder rounded-xl p-6">
+              <p class="text-sm text-themeMuted mb-2">
+                Resolved IP(s) for
+                <span
+                  id="inspect-target"
+                  class="text-themeText font-bold"></span
+                >:
+              </p>
+              <div
+                id="inspect-ips"
+                class="space-y-2 font-mono text-primary text-lg"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="dns-checker" class="tool-section hidden">
+          <div
+            class="max-w-3xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 shadow-sm">
+            <h2 class="text-xl font-bold text-themeText mb-6">DNS Lookup</h2>
+            <form
+              onsubmit="handleDnsSubmit(event)"
+              class="flex flex-col sm:flex-row gap-4">
+              <input
+                type="text"
+                id="dns-domain"
+                required
+                placeholder="example.com"
+                class="flex-1 bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 outline-none focus:border-primary" /><select
+                id="dns-type"
+                class="bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 outline-none">
+                <option value="A">A</option>
+                <option value="MX">MX</option>
+                <option value="TXT">TXT</option></select
+              ><button
+                type="submit"
+                class="bg-blue-600 text-white rounded-lg px-6 py-3 font-medium">
+                Search
+              </button>
+            </form>
+            <div
+              id="dns-results"
+              class="mt-6 hidden bg-themeCode p-4 rounded-lg border border-themeBorder">
+              <pre
+                id="dns-output"
+                class="text-green-600 dark:text-green-400 font-mono text-sm overflow-x-auto custom-scrollbar"></pre>
+            </div>
+          </div>
+        </section>
+
+        <section id="domain-checker" class="tool-section hidden">
+          <div
+            class="max-w-2xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-8 text-center shadow-sm">
+            <h2 class="text-xl font-bold text-themeText mb-6">
+              Domain Availability Checker
+            </h2>
+            <form
+              onsubmit="handleDomainSubmit(event)"
+              class="flex flex-col sm:flex-row gap-4">
+              <input
+                type="text"
+                id="domain-input"
+                required
+                placeholder="yourstartup.com"
+                class="flex-1 bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 text-lg text-center sm:text-left outline-none focus:border-primary" /><button
+                type="submit"
+                class="bg-primary hover:bg-primaryHover text-white rounded-lg px-8 py-3 font-bold">
+                Check
+              </button>
+            </form>
+            <div
+              id="domain-result-area"
+              class="mt-6 hidden p-4 rounded-xl border flex items-center justify-center gap-3 text-lg font-bold"></div>
+          </div>
+        </section>
+
+        <section id="link-bypass" class="tool-section hidden">
+          <div
+            class="max-w-3xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 shadow-sm">
+            <h2 class="text-xl font-bold text-themeText mb-6">
+              <i class="ph-fill ph-link-break text-orange-500"></i> Link
+              Bypasser (Mock)
+            </h2>
+            <p class="text-sm text-themeMuted mb-4">
+              Simulate bypassing shortlinks (e.g., bit.ly, adfly).
+            </p>
+            <form onsubmit="handleBypass(event)" class="flex gap-4">
+              <input
+                type="url"
+                id="bypass-input"
+                required
+                placeholder="https://bit.ly/xyz"
+                class="flex-1 bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 outline-none focus:border-orange-500" /><button
+                type="submit"
+                class="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-6 py-3 font-bold">
+                Bypass
+              </button>
+            </form>
+            <div
+              id="bypass-result"
+              class="mt-6 hidden p-4 bg-green-500/10 border border-green-500/30 rounded-lg flex justify-between items-center">
+              <span
+                id="bypass-output"
+                class="text-green-600 dark:text-green-400 font-mono text-sm break-all"></span
+              ><button
+                onclick="copyText('bypass-output', 'Copied')"
+                class="text-themeText hover:text-green-500 ml-4">
+                <i class="ph ph-copy text-xl"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section id="media-downloader" class="tool-section hidden">
+          <div
+            class="max-w-3xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 shadow-sm">
+            <h2 class="text-xl font-bold text-themeText mb-6">
+              <i class="ph-fill ph-youtube-logo text-red-500"></i> Video
+              Downloader
+            </h2>
+            <form onsubmit="handleMediaDownload(event)" class="flex gap-4 mb-6">
+              <input
+                type="url"
+                id="media-input"
+                required
+                placeholder="Paste YouTube/TikTok URL..."
+                class="flex-1 bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 outline-none focus:border-red-500" /><button
+                type="submit"
+                id="btn-media"
+                class="bg-red-500 hover:bg-red-600 text-white rounded-lg px-6 py-3 font-bold">
+                Fetch
+              </button>
+            </form>
+            <div
+              id="media-result"
+              class="hidden border border-themeBorder rounded-xl overflow-hidden bg-themeInput flex flex-col sm:flex-row">
+              <img
+                id="media-thumbnail"
+                src="https://placehold.co/320x180/1e293b/ffffff?text=Video+Thumbnail"
+                class="w-full sm:w-48 object-cover" />
+              <div class="p-4 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 class="font-bold text-themeText mb-1 text-base line-clamp-2" id="media-title">
+                    Sample Awesome Video Title
+                  </h3>
+                  <p class="text-xs text-themeMuted mb-3" id="media-author">Creator / Channel</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <a
+                    id="media-video-link"
+                    class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-sm transition-colors"
+                    href="#">
+                    <i class="ph ph-video-camera text-base"></i> MP4 Video
+                  </a>
+                  <a
+                    id="media-audio-128-link"
+                    class="bg-amber-600 hover:bg-amber-700 text-white py-2 px-3 rounded-lg font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-sm transition-colors"
+                    href="#">
+                    <i class="ph ph-speaker-simple-high text-base"></i> MP3 128k (Legacy)
+                  </a>
+                  <a
+                    id="media-audio-320-link"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-lg font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-sm transition-colors"
+                    href="#">
+                    <i class="ph ph-music-notes text-base"></i> MP3 320k (HQ)
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="spotify-downloader" class="tool-section hidden">
+          <div
+            class="max-w-3xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 shadow-sm">
+            <h2 class="text-xl font-bold text-themeText mb-6">
+              <i class="ph-fill ph-spotify-logo text-green-500"></i> Spotify
+              Downloader
+            </h2>
+            <form onsubmit="handleSpotify(event)" class="flex gap-4 mb-6">
+              <input
+                type="url"
+                id="spotify-input"
+                required
+                placeholder="Spotify Track URL..."
+                class="flex-1 bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 outline-none focus:border-green-500" /><button
+                type="submit"
+                id="btn-spotify"
+                class="bg-green-500 hover:bg-green-600 text-white rounded-lg px-6 py-3 font-bold">
+                Fetch
+              </button>
+            </form>
+            <div
+              id="spotify-result"
+              class="hidden border border-themeBorder rounded-xl overflow-hidden bg-themeInput flex flex-col sm:flex-row items-center p-4 gap-4">
+              <img
+                id="spotify-cover"
+                src="https://placehold.co/100x100/1e293b/ffffff?text=Cover"
+                class="w-24 h-24 rounded-lg shadow object-cover shrink-0" />
+              <div class="flex-1 text-center sm:text-left">
+                <h3 class="font-bold text-themeText text-lg mb-1" id="spotify-title">
+                  Track Name
+                </h3>
+                <p class="text-sm text-themeMuted mb-3" id="spotify-artist">Artist Name</p>
+                <div class="flex flex-wrap gap-2 justify-center sm:justify-start">
+                  <a
+                    id="spotify-audio-128-link"
+                    class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors"
+                    href="#">
+                    <i class="ph ph-speaker-simple-high text-base"></i> Download 128kbps (Old Devices)
+                  </a>
+                  <a
+                    id="spotify-audio-320-link"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors"
+                    href="#">
+                    <i class="ph ph-music-notes text-base"></i> Download 320kbps (HQ)
+                  </a>
+                </div>
+              </div>
+            </div>
+        </section>
+
+        <section id="public-image" class="tool-section hidden">
+          <div
+            class="max-w-2xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 shadow-sm text-center">
+            <h2 class="text-xl font-bold text-themeText mb-6">
+              <i class="ph-fill ph-image-square text-blue-500"></i> Image to URL
+              (Mock ImgBB)
+            </h2>
+            <div
+              class="border-2 border-dashed border-themeBorder hover:border-blue-500 transition-colors rounded-xl p-10 mb-6 cursor-pointer relative">
+              <input
+                type="file"
+                id="img-upload"
+                accept="image/*"
+                onchange="handleImageUpload(event)"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+              <div id="img-preview-container">
+                <i
+                  class="ph ph-upload-simple text-4xl text-themeMuted mb-2"></i>
+                <p class="text-themeText font-medium">
+                  Click or drag image here
+                </p>
+              </div>
+              <img
+                id="img-preview"
+                src=""
+                class="hidden mx-auto max-h-48 rounded shadow" />
+            </div>
+            <div
+              id="img-result"
+              class="hidden mt-4 bg-themeInput p-3 rounded-lg flex items-center justify-between">
+              <input
+                type="text"
+                id="img-url-out"
+                readonly
+                class="bg-transparent border-none outline-none text-blue-500 font-mono text-sm w-full" /><button
+                onclick="copyText('img-url-out', 'URL Copied')"
+                class="text-themeText">
+                <i class="ph ph-copy"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="source-viewer"
+          class="tool-section hidden h-full flex flex-col">
+          <div class="flex justify-between items-center mb-4 shrink-0">
+            <h2 class="text-xl font-bold text-themeText">
+              <i class="ph-fill ph-file-zip text-yellow-500"></i> Source to ZIP
+            </h2>
+          </div>
+          <form
+            onsubmit="handleSourceFetch(event)"
+            class="flex gap-4 mb-4 shrink-0">
+            <input
+              type="url"
+              id="source-url"
+              required
+              placeholder="https://example.com"
+              class="flex-1 bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 outline-none focus:border-yellow-500" /><button
+              type="submit"
+              id="btn-source"
+              class="bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold px-6 py-3 rounded-lg">
+              Fetch & ZIP
+            </button>
+          </form>
+          <div
+            class="flex-1 bg-themeCode border border-themeBorder rounded-xl p-4 overflow-auto relative">
+            <pre
+              id="source-output"
+              class="text-xs text-themeText font-mono"><span class="text-themeMuted">HTML Source code will appear here...</span></pre>
+          </div>
+        </section>
+
+        <section
+          id="json-formatter"
+          class="tool-section hidden h-full flex flex-col">
+          <div class="flex justify-between items-center mb-4 shrink-0">
+            <h2 class="text-xl font-bold text-themeText">
+              <i class="ph-fill ph-brackets-curly text-yellow-500"></i> JSON
+              Formatter
+            </h2>
+            <div class="flex gap-2">
+              <button
+                onclick="formatJSON()"
+                class="bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold px-4 py-2 rounded-lg text-sm">
+                Format</button
+              ><button
+                onclick="minifyJSON()"
+                class="bg-themeCode border border-themeBorder text-themeText font-bold px-4 py-2 rounded-lg text-sm">
+                Minify
+              </button>
+            </div>
+          </div>
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-[400px]">
+            <textarea
+              id="json-input"
+              placeholder="Paste unformatted JSON here..."
+              class="w-full bg-themeInput border border-themeBorder text-themeText font-mono text-sm p-4 rounded-xl outline-none focus:border-yellow-500 resize-none custom-scrollbar"></textarea>
+            <div class="relative w-full h-full">
+              <textarea
+                id="json-output"
+                readonly
+                placeholder="..."
+                class="absolute inset-0 w-full h-full bg-themeCode border border-themeBorder text-green-600 dark:text-green-400 font-mono text-sm p-4 rounded-xl outline-none resize-none custom-scrollbar"></textarea
+              ><button
+                onclick="copyText('json-output', 'JSON Copied!')"
+                class="absolute top-2 right-2 bg-themeSurface border border-themeBorder text-themeText p-2 rounded hover:bg-themeInput">
+                <i class="ph ph-copy"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="jwt-decoder"
+          class="tool-section hidden h-full flex flex-col">
+          <div class="flex justify-between items-center mb-4 shrink-0">
+            <h2 class="text-xl font-bold text-themeText">
+              <i class="ph-fill ph-key text-pink-500"></i> JWT Decoder
+            </h2>
+          </div>
+          <textarea
+            id="jwt-input"
+            oninput="decodeJWT()"
+            placeholder="Paste JWT token here..."
+            class="w-full h-24 bg-themeInput border border-themeBorder text-themeText font-mono text-sm p-4 rounded-xl outline-none focus:border-pink-500 resize-none custom-scrollbar mb-4 shrink-0"></textarea>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+            <div class="flex flex-col">
+              <label class="text-xs font-bold text-themeMuted mb-1 uppercase"
+                >Header (Algorithm & Type)</label
+              ><textarea
+                id="jwt-header"
+                readonly
+                class="flex-1 bg-themeCode border border-themeBorder text-pink-500 font-mono text-sm p-3 rounded-lg outline-none resize-none custom-scrollbar"></textarea>
+            </div>
+            <div class="flex flex-col">
+              <label class="text-xs font-bold text-themeMuted mb-1 uppercase"
+                >Payload (Data)</label
+              ><textarea
+                id="jwt-payload"
+                readonly
+                class="flex-1 bg-themeCode border border-themeBorder text-purple-500 font-mono text-sm p-3 rounded-lg outline-none resize-none custom-scrollbar"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section id="hash-generator" class="tool-section hidden">
+          <div
+            class="max-w-3xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 shadow-sm">
+            <h2 class="text-xl font-bold text-themeText mb-6">
+              <i class="ph-fill ph-hash text-themeMuted"></i> Hash Generator
+            </h2>
+            <textarea
+              id="hash-input"
+              oninput="generateHashes()"
+              placeholder="Type text to hash..."
+              class="w-full h-24 bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 outline-none focus:border-primary mb-6 resize-none"></textarea>
+            <div class="space-y-4">
+              <div class="flex items-center gap-3">
+                <label
+                  class="w-20 text-xs font-bold text-themeMuted text-right uppercase"
+                  >MD5</label
+                ><input
+                  type="text"
+                  id="hash-md5"
+                  readonly
+                  class="flex-1 bg-themeCode border border-themeBorder text-green-600 dark:text-green-400 rounded p-2 font-mono text-sm" />
+              </div>
+              <div class="flex items-center gap-3">
+                <label
+                  class="w-20 text-xs font-bold text-themeMuted text-right uppercase"
+                  >SHA-1</label
+                ><input
+                  type="text"
+                  id="hash-sha1"
+                  readonly
+                  class="flex-1 bg-themeCode border border-themeBorder text-green-600 dark:text-green-400 rounded p-2 font-mono text-sm" />
+              </div>
+              <div class="flex items-center gap-3">
+                <label
+                  class="w-20 text-xs font-bold text-themeMuted text-right uppercase"
+                  >SHA-256</label
+                ><input
+                  type="text"
+                  id="hash-sha256"
+                  readonly
+                  class="flex-1 bg-themeCode border border-themeBorder text-green-600 dark:text-green-400 rounded p-2 font-mono text-sm" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="xss-sanitizer"
+          class="tool-section hidden h-full flex flex-col">
+          <div class="flex justify-between items-center mb-4 shrink-0">
+            <h2 class="text-xl font-bold text-themeText">
+              <i class="ph-fill ph-shield-check text-green-500"></i> XSS HTML
+              Sanitizer
+            </h2>
+          </div>
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-[300px]">
+            <div
+              class="flex flex-col bg-themeSurface rounded-xl border border-themeBorder p-4 shadow-sm">
+              <h3 class="text-themeText font-bold mb-2">Input Unsafe HTML</h3>
+              <textarea
+                id="xss-input"
+                oninput="sanitizeXSS()"
+                class="flex-1 bg-themeInput border border-themeBorder text-themeText p-3 font-mono text-sm rounded outline-none focus:border-primary custom-scrollbar resize-none"></textarea>
+            </div>
+            <div
+              class="flex flex-col bg-themeSurface rounded-xl border border-themeBorder p-4 shadow-sm">
+              <h3 class="text-themeText font-bold mb-2 flex justify-between">
+                Sanitized Output
+                <button
+                  onclick="copyText('xss-output', 'Copied')"
+                  class="text-xs bg-themeCode border border-themeBorder px-2 py-1 rounded">
+                  Copy
+                </button>
+              </h3>
+              <pre
+                class="flex-1 bg-themeCode border border-themeBorder text-green-600 dark:text-green-400 p-3 overflow-auto whitespace-pre-wrap text-sm custom-scrollbar rounded"
+                id="xss-output"></pre>
+            </div>
+          </div>
+        </section>
+
+        <section id="base64" class="tool-section hidden">
+          <div
+            class="max-w-4xl mx-auto bg-themeSurface p-6 rounded-xl border border-themeBorder shadow-sm">
+            <div class="flex justify-between mb-4">
+              <h2 class="text-themeText font-bold text-xl">Base64 Tool</h2>
+              <select
+                id="b64-mode"
+                class="bg-themeInput border border-themeBorder text-themeText p-2 rounded outline-none">
+                <option value="encode">Encode Text -> Base64</option>
+                <option value="decode">Decode Base64 -> Text</option>
+              </select>
+            </div>
+            <textarea
+              id="b64-input"
+              class="w-full h-32 bg-themeInput border border-themeBorder text-themeText p-3 mb-4 rounded font-mono outline-none resize-none custom-scrollbar"
+              placeholder="Enter text..."></textarea
+            ><button
+              onclick="processBase64()"
+              class="w-full bg-primary hover:bg-primaryHover font-bold text-white py-3 rounded-lg mb-4">
+              Process string</button
+            ><textarea
+              id="b64-output"
+              readonly
+              class="w-full h-32 bg-themeCode border border-themeBorder text-green-600 dark:text-green-400 p-3 rounded font-mono outline-none resize-none custom-scrollbar"></textarea>
+          </div>
+        </section>
+
+        <section
+          id="url-encoder"
+          class="tool-section hidden h-full flex flex-col">
+          <div class="flex justify-between items-center mb-4 shrink-0">
+            <h2 class="text-xl font-bold text-themeText">
+              <i class="ph-fill ph-link text-blue-500"></i> URL Encoder /
+              Decoder
+            </h2>
+            <div class="flex gap-2">
+              <button
+                onclick="processUrl('encode')"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-sm">
+                Encode</button
+              ><button
+                onclick="processUrl('decode')"
+                class="bg-themeCode border border-themeBorder text-themeText hover:bg-themeBorder font-bold px-4 py-2 rounded-lg text-sm">
+                Decode
+              </button>
+            </div>
+          </div>
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-[300px]">
+            <textarea
+              id="url-input"
+              placeholder="Enter URL..."
+              class="w-full bg-themeInput border border-themeBorder text-themeText font-mono text-sm p-4 rounded-xl outline-none resize-none custom-scrollbar focus:border-blue-500"></textarea
+            ><textarea
+              id="url-output"
+              readonly
+              class="w-full bg-themeCode border border-themeBorder text-green-600 dark:text-green-400 font-mono text-sm p-4 rounded-xl outline-none resize-none custom-scrollbar"></textarea>
+          </div>
+        </section>
+
+        <section id="qr-generator" class="tool-section hidden">
+          <div
+            class="max-w-xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-8 text-center shadow-sm">
+            <i class="ph-fill ph-qr-code text-5xl text-themeText mb-2"></i>
+            <h2 class="text-2xl font-bold text-themeText mb-6">
+              QR Code Maker
+            </h2>
+            <form onsubmit="handleQR(event)" class="mb-6">
+              <textarea
+                id="qr-input"
+                required
+                placeholder="Enter link or text..."
+                class="w-full bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 outline-none mb-4 h-24 resize-none focus:border-primary"></textarea
+              ><button
+                type="submit"
+                id="btn-qr"
+                class="w-full bg-blue-600 hover:bg-blue-700 font-bold text-white rounded-lg py-3">
+                Generate QR
+              </button>
+            </form>
+            <div
+              id="qr-result"
+              class="hidden flex flex-col items-center p-4 bg-white border border-slate-200 rounded-xl mx-auto w-fit shadow-md">
+              <img id="qr-img" src="" alt="QR" class="w-48 h-48 mb-2" />
+              <p class="text-xs text-slate-500 font-medium w-full text-center">
+                Right-click to save
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="password-generator" class="tool-section hidden">
+          <div
+            class="max-w-xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 shadow-sm">
+            <h2 class="text-xl font-bold text-themeText mb-6">
+              <i class="ph-fill ph-password text-yellow-500"></i> Password Gen
+            </h2>
+            <div
+              class="bg-themeInput border border-themeBorder rounded-xl p-4 flex items-center justify-between mb-6 group">
+              <span
+                id="pwd-display"
+                class="text-2xl font-mono text-green-600 dark:text-green-400 tracking-wider"></span
+              ><button
+                onclick="copyText('pwd-display', 'Password Copied!')"
+                class="p-2 bg-themeCode border border-themeBorder rounded text-themeText hover:bg-themeBorder">
+                <i class="ph ph-copy"></i>
+              </button>
+            </div>
+            <div class="space-y-4 mb-6">
+              <div>
+                <div class="flex justify-between text-sm text-themeText mb-2">
+                  <span>Length</span
+                  ><span id="pwd-length-val" class="font-bold">16</span>
+                </div>
+                <input
+                  type="range"
+                  id="pwd-length"
+                  min="8"
+                  max="64"
+                  value="16"
+                  oninput="
+                    document.getElementById('pwd-length-val').innerText =
+                      this.value;
+                    generatePassword();
+                  "
+                  class="w-full accent-primary" />
+              </div>
+              <div class="grid grid-cols-2 gap-3 text-sm text-themeText">
+                <label class="flex items-center gap-2 cursor-pointer"
+                  ><input
+                    type="checkbox"
+                    id="pwd-upper"
+                    checked
+                    onchange="generatePassword()"
+                    class="accent-primary w-4 h-4" />
+                  Uppercase</label
+                ><label class="flex items-center gap-2 cursor-pointer"
+                  ><input
+                    type="checkbox"
+                    id="pwd-lower"
+                    checked
+                    onchange="generatePassword()"
+                    class="accent-primary w-4 h-4" />
+                  Lowercase</label
+                ><label class="flex items-center gap-2 cursor-pointer"
+                  ><input
+                    type="checkbox"
+                    id="pwd-numbers"
+                    checked
+                    onchange="generatePassword()"
+                    class="accent-primary w-4 h-4" />
+                  Numbers</label
+                ><label class="flex items-center gap-2 cursor-pointer"
+                  ><input
+                    type="checkbox"
+                    id="pwd-symbols"
+                    checked
+                    onchange="generatePassword()"
+                    class="accent-primary w-4 h-4" />
+                  Symbols</label
+                >
+              </div>
+            </div>
+            <button
+              onclick="generatePassword()"
+              class="w-full bg-primary hover:bg-primaryHover font-bold text-white py-3 rounded-lg">
+              Generate New
+            </button>
+          </div>
+        </section>
+
+        <section
+          id="text-toolkit"
+          class="tool-section hidden h-full flex flex-col">
+          <div class="flex justify-between items-center mb-4 shrink-0">
+            <h2 class="text-xl font-bold text-themeText">
+              <i class="ph-fill ph-text-t text-primary"></i> Text Toolkit
+            </h2>
+          </div>
+          <div
+            class="flex gap-2 mb-4 overflow-x-auto pb-2 custom-scrollbar shrink-0">
+            <button
+              onclick="transformText('upper')"
+              class="bg-themeInput border border-themeBorder hover:bg-themeBorder text-themeText px-3 py-1.5 text-sm rounded whitespace-nowrap">
+              UPPERCASE</button
+            ><button
+              onclick="transformText('lower')"
+              class="bg-themeInput border border-themeBorder hover:bg-themeBorder text-themeText px-3 py-1.5 text-sm rounded whitespace-nowrap">
+              lowercase</button
+            ><button
+              onclick="transformText('title')"
+              class="bg-themeInput border border-themeBorder hover:bg-themeBorder text-themeText px-3 py-1.5 text-sm rounded whitespace-nowrap">
+              Title Case</button
+            ><button
+              onclick="transformText('trim')"
+              class="bg-themeInput border border-themeBorder hover:bg-themeBorder text-themeText px-3 py-1.5 text-sm rounded whitespace-nowrap">
+              Trim Spaces</button
+            ><button
+              onclick="copyText('text-tool-input', 'Text Copied')"
+              class="bg-blue-600 text-white px-3 py-1.5 text-sm rounded ml-auto flex items-center gap-1">
+              <i class="ph ph-copy"></i> Copy
+            </button>
+          </div>
+          <textarea
+            id="text-tool-input"
+            oninput="updateTextStats()"
+            placeholder="Type or paste text here..."
+            class="w-full flex-1 bg-themeInput border border-themeBorder text-themeText font-sans text-base p-4 rounded-xl outline-none focus:border-primary resize-none custom-scrollbar mb-4"></textarea>
+          <div
+            class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center shrink-0">
+            <div
+              class="bg-themeSurface p-3 rounded-lg border border-themeBorder shadow-sm">
+              <p class="text-xs text-themeMuted">Words</p>
+              <p id="tt-words" class="text-xl font-bold text-themeText">0</p>
+            </div>
+            <div
+              class="bg-themeSurface p-3 rounded-lg border border-themeBorder shadow-sm">
+              <p class="text-xs text-themeMuted">Characters</p>
+              <p id="tt-chars" class="text-xl font-bold text-themeText">0</p>
+            </div>
+            <div
+              class="bg-themeSurface p-3 rounded-lg border border-themeBorder shadow-sm">
+              <p class="text-xs text-themeMuted">No Spaces</p>
+              <p id="tt-chars-no" class="text-xl font-bold text-themeText">0</p>
+            </div>
+            <div
+              class="bg-themeSurface p-3 rounded-lg border border-themeBorder shadow-sm">
+              <p class="text-xs text-themeMuted">Lines</p>
+              <p id="tt-lines" class="text-xl font-bold text-themeText">0</p>
+            </div>
+            <div
+              class="bg-themeSurface p-3 rounded-lg border border-themeBorder shadow-sm">
+              <p class="text-xs text-themeMuted">Paragraphs</p>
+              <p id="tt-paras" class="text-xl font-bold text-themeText">0</p>
+            </div>
+            <div
+              class="bg-themeSurface p-3 rounded-lg border border-themeBorder shadow-sm">
+              <p class="text-xs text-themeMuted">Reading Time</p>
+              <p id="tt-read" class="text-lg font-bold text-green-500">0 min</p>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="markdown-preview"
+          class="tool-section hidden h-full flex flex-col">
+          <div class="flex justify-between items-center mb-4 shrink-0">
+            <h2 class="text-xl font-bold text-themeText">
+              <i class="ph-fill ph-markdown-logo text-blue-500"></i> Markdown
+              Preview
+            </h2>
+          </div>
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-[400px]">
+            <textarea
+              id="md-input"
+              oninput="renderMarkdown()"
+              placeholder="# Hello Markdown"
+              class="w-full bg-themeInput border border-themeBorder text-themeText font-mono text-sm p-4 rounded-xl outline-none focus:border-blue-500 resize-none custom-scrollbar"></textarea>
+            <div
+              class="bg-themeSurface border border-themeBorder rounded-xl p-6 overflow-auto custom-scrollbar markdown-body"
+              id="md-output">
+              <h1>Hello Markdown</h1>
+              <p>Start typing on the left to see the preview here.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="color-converter" class="tool-section hidden">
+          <div
+            class="max-w-2xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 text-center shadow-sm">
+            <h2 class="text-xl font-bold text-themeText mb-6">
+              <i class="ph-fill ph-palette text-emerald-500"></i> Color Code
+              Converter
+            </h2>
+            <div class="flex flex-col items-center gap-6 mb-8">
+              <div
+                class="relative w-32 h-32 rounded-full overflow-hidden border-4 border-themeBorder shadow-xl cursor-pointer hover:scale-105 transition-transform">
+                <input
+                  type="color"
+                  id="color-picker"
+                  value="#3b82f6"
+                  oninput="updateColors()"
+                  class="absolute inset-0 w-[200%] h-[200%] -top-1/2 -left-1/2 cursor-pointer bg-transparent border-none p-0" />
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center gap-3">
+                <label class="w-16 text-xs font-bold text-themeMuted text-right"
+                  >HEX</label
+                ><input
+                  type="text"
+                  id="color-hex"
+                  readonly
+                  class="flex-1 bg-themeCode border border-themeBorder text-emerald-600 dark:text-emerald-400 rounded p-3 font-mono font-bold text-lg text-center" /><button
+                  onclick="copyText('color-hex', 'HEX Copied')"
+                  class="bg-themeInput border border-themeBorder text-themeText p-3 rounded">
+                  <i class="ph ph-copy"></i>
+                </button>
+              </div>
+              <div class="flex items-center gap-3">
+                <label class="w-16 text-xs font-bold text-themeMuted text-right"
+                  >RGB</label
+                ><input
+                  type="text"
+                  id="color-rgb"
+                  readonly
+                  class="flex-1 bg-themeCode border border-themeBorder text-emerald-600 dark:text-emerald-400 rounded p-3 font-mono font-bold text-lg text-center" /><button
+                  onclick="copyText('color-rgb', 'RGB Copied')"
+                  class="bg-themeInput border border-themeBorder text-themeText p-3 rounded">
+                  <i class="ph ph-copy"></i>
+                </button>
+              </div>
+              <div class="flex items-center gap-3">
+                <label class="w-16 text-xs font-bold text-themeMuted text-right"
+                  >HSL</label
+                ><input
+                  type="text"
+                  id="color-hsl"
+                  readonly
+                  class="flex-1 bg-themeCode border border-themeBorder text-emerald-600 dark:text-emerald-400 rounded p-3 font-mono font-bold text-lg text-center" /><button
+                  onclick="copyText('color-hsl', 'HSL Copied')"
+                  class="bg-themeInput border border-themeBorder text-themeText p-3 rounded">
+                  <i class="ph ph-copy"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="ai-regex" class="tool-section hidden">
+          <div
+            class="max-w-3xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 shadow-sm">
+            <h2 class="text-xl font-bold text-themeText mb-2">
+              <i class="ph-fill ph-magic-wand text-purple-500"></i> AI Regex
+              Builder
+            </h2>
+            <p class="text-sm text-themeMuted mb-6">
+              Describe what you want to match, and AI will generate the Regular
+              Expression. (Simulation)
+            </p>
+            <form onsubmit="handleAiRegex(event)" class="flex gap-4 mb-6">
+              <input
+                type="text"
+                id="regex-prompt"
+                required
+                placeholder="e.g. Match Indonesian phone numbers starting with +62..."
+                class="flex-1 bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 outline-none focus:border-purple-500" /><button
+                type="submit"
+                id="btn-regex"
+                class="bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-6 py-3 font-bold">
+                Generate
+              </button>
+            </form>
+            <div id="regex-result" class="hidden">
+              <div
+                class="bg-themeCode border border-themeBorder rounded-xl p-4 flex justify-between items-center mb-4">
+                <code
+                  id="regex-output"
+                  class="text-purple-500 dark:text-purple-400 font-mono text-lg font-bold"></code
+                ><button
+                  onclick="copyText('regex-output', 'Regex Copied')"
+                  class="text-themeText">
+                  <i class="ph ph-copy text-xl"></i>
+                </button>
+              </div>
+              <div
+                class="bg-themeInput border border-themeBorder rounded-xl p-4">
+                <h3 class="font-bold text-themeText mb-2 text-sm">
+                  Explanation:
+                </h3>
+                <p
+                  id="regex-explain"
+                  class="text-themeMuted text-sm leading-relaxed"></p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="ai-code" class="tool-section hidden h-full flex flex-col">
+          <div class="flex justify-between items-center mb-4 shrink-0">
+            <h2 class="text-xl font-bold text-themeText">
+              <i class="ph-fill ph-terminal-window text-blue-500"></i> AI Code
+              Explainer
+            </h2>
+          </div>
+          <div
+            class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-[400px]">
+            <div class="flex flex-col">
+              <textarea
+                id="ai-code-input"
+                placeholder="Paste cryptic or minified code here..."
+                class="flex-1 bg-themeCode border border-themeBorder text-themeText font-mono text-sm p-4 rounded-xl outline-none focus:border-blue-500 resize-none custom-scrollbar mb-4"></textarea
+              ><button
+                onclick="handleAiCode()"
+                id="btn-ai-code"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">
+                Explain Code
+              </button>
+            </div>
+            <div
+              class="bg-themeSurface border border-themeBorder rounded-xl p-6 overflow-auto custom-scrollbar markdown-body"
+              id="ai-code-output">
+              <div
+                class="h-full flex items-center justify-center text-themeMuted text-center">
+                <p>
+                  <i class="ph-fill ph-robot text-4xl mb-2 opacity-50"></i
+                  ><br />AI Explanation will appear here.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+        <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

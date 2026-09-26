@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# Secrets
+.env
+.env.local
+*.env
+
+# Temp
+*.log
+tmp/

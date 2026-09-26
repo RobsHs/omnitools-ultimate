@@ -1,0 +1,47 @@
+[
+  [
+    "dbec56b2ec96780c3d79d353020b482aae20cc9c8e3b0c0f49c96ae13790f30e",
+    {
+      "userId": "usr_bf70982d6661a14e",
+      "username": "testuser1",
+      "role": "Member",
+      "expiresAt": 1794219899552
+    }
+  ],
+  [
+    "19eb20711a9ac2409e24eef3d728395a1ef71990cbdf9989977608ae81cd04e9",
+    {
+      "userId": "usr_e7b64c41895f9cd3",
+      "username": "testuser2",
+      "role": "Member",
+      "expiresAt": 1794219899583
+    }
+  ],
+  [
+    "4909784764ae6547dc89926a5beee059c97998e7e8a5cdb2231f90c37604f2b4",
+    {
+      "userId": "usr_bf70982d6661a14e",
+      "username": "testuser1",
+      "role": "Member",
+      "expiresAt": 1794219899603
+    }
+  ],
+  [
+    "fe2d3d9d42a4b2bca1d197180fc04eca483f7cbcfe375dbaff32fc95c734e749",
+    {
+      "userId": "usr_robshs",
+      "username": "RobsHs",
+      "role": "Lead Architect & Developer",
+      "expiresAt": 1794219899617
+    }
+  ],
+  [
+    "fedeb4afbe464e0941b95617a716a414c16ce278ff6fd5c7f439eb5e17f44f40",
+    {
+      "userId": "usr_robshs",
+      "username": "RobsHs",
+      "role": "Lead Architect & Developer",
+      "expiresAt": 1794221075797
+    }
+  ]
+]
