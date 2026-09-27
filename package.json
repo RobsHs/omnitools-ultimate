@@ -1,5 +1,8 @@
 {
   "name": "omnitools-ultimate",
   "version": "1.0.0",
-  "main": "server.js"
+  "main": "server.js",
+  "dependencies": {
+    "whois-json": "^2.0.4"
+  }
 }
