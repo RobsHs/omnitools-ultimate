@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "dependencies": {
-    "whois-json": "^2.0.4"
+    "whois-json": "^2.0.4",
+    "axios": "^1.20.0"
   }
 }
