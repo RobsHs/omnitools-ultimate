@@ -15,3 +15,5 @@ app.post('/api/network/domain', (req, res) => res.json({ success: true }));
 app.post('/api/proxy/source', (req, res) => res.json({ success: true }));
 
 app.post('/api/bypass', (req, res) => res.json({ success: true }));
+
+app.post('/api/upload/image', (req, res) => res.json({ success: true }));
