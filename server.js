@@ -19,3 +19,5 @@ app.post('/api/bypass', (req, res) => res.json({ success: true }));
 app.post('/api/upload/image', (req, res) => res.json({ success: true }));
 
 app.post('/api/download/media', (req, res) => res.json({ success: true }));
+
+app.get('/api/download/stream', (req, res) => res.end('ok'));
