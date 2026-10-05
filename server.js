@@ -23,3 +23,5 @@ app.post('/api/download/media', (req, res) => res.json({ success: true }));
 app.get('/api/download/stream', (req, res) => res.end('ok'));
 
 app.post('/api/download/spotify', (req, res) => res.json({ success: true }));
+
+app.post('/api/ai/regex', (req, res) => res.json({ success: true }));
