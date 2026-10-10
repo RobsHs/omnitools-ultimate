@@ -52,5 +52,14 @@
       "role": "Member",
       "expiresAt": 1794223561733
     }
+  ],
+  [
+    "6024c81906e98e5f9bed543413d398ff62721de970a6c2ae715af8c6cf3d12b9",
+    {
+      "userId": "usr_robshs",
+      "username": "RobsHs",
+      "role": "Lead Architect & Developer",
+      "expiresAt": 1794223756976
+    }
   ]
 ]

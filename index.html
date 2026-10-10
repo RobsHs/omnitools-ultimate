@@ -13,8 +13,8 @@
         theme: {
           extend: {
             colors: {
-              primary: "#fa8c16",
-              primaryHover: "#ea580c",
+              primary: "#3b82f6",
+              primaryHover: "#2563eb",
               themeBg: "var(--bg-main)",
               themeSurface: "var(--bg-surface)",
               themeInput: "var(--bg-input)",
@@ -50,63 +50,69 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
 
-    <link rel="stylesheet" href="public/css/style.css" />
+    <link rel="stylesheet" href="css/style.css" />
   </head>
   <body
-    class="bg-themeBg text-themeText font-sans h-screen flex overflow-hidden selection:bg-primary selection:text-white transition-colors duration-300">
+    class="bg-themeBg text-themeText font-sans h-screen h-[100dvh] flex overflow-hidden selection:bg-primary selection:text-white transition-colors duration-300">
+    <!-- Ambient Aurora Canvas for iOS 26 Liquid Glass -->
+    <div class="ambient-canvas">
+      <div class="ambient-orb ambient-orb-1"></div>
+      <div class="ambient-orb ambient-orb-2"></div>
+      <div class="ambient-orb ambient-orb-3"></div>
+    </div>
+
     <!-- ============================================== -->
-    <!-- MINIMALIST MODERN AUTHENTICATION GATE (SAWERIA STYLE) -->
+    <!-- CYBER GLASS AUTHENTICATION GATE (LOGIN / REGISTER) -->
     <!-- ============================================== -->
     <div id="auth-gate" class="auth-gate">
       <div class="auth-card">
-        <!-- Brand Header (Saweria Friendly Style) -->
-        <div class="text-center mb-6">
-          <div class="w-13 h-13 w-12 h-12 rounded-2xl bg-orange-500 text-white flex items-center justify-center text-2xl font-black shadow-md shadow-orange-500/25 mx-auto mb-3">
-            <i class="ph-fill ph-tools text-2xl"></i>
+        <!-- Brand Header -->
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-400 font-bold font-mono text-base shadow-sm shadow-blue-500/30">
+            π
           </div>
-          <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Omni<span class="text-orange-500">Tools</span>
-          </h1>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Platform Utilitas Modern & Media Suite • Karya <strong class="text-slate-800 dark:text-slate-200">RobsHs</strong>
-          </p>
+          <div class="font-extrabold tracking-wider text-sm">
+            <span class="text-white">OMNITOOLS</span> <span class="text-blue-400">ROBSHS</span>
+          </div>
         </div>
 
-        <!-- Segmented Tab Switcher (Saweria Clean Pill Switcher) -->
-        <div class="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 mb-6">
+        <!-- Auth Heading -->
+        <h2 id="auth-main-title" class="text-2xl sm:text-3xl font-black text-white tracking-wide uppercase mb-1.5 font-sans">
+          LOGIN WITH
+        </h2>
+        <p class="text-xs text-slate-400 mb-6 font-normal">
+          Sign in to your account or create a new one to access all tools.
+        </p>
+
+        <!-- Tab Toggle Pills -->
+        <div class="flex items-center gap-3 p-1 rounded-full bg-slate-900/60 border border-white/10 mb-6">
           <button type="button" id="tab-login-btn" onclick="setAuthTab('login')" class="auth-tab-btn active">
-            <i class="ph-bold ph-sign-in text-sm"></i> MASUK
+            <i class="ph-fill ph-user text-base"></i> LOGIN
           </button>
           <button type="button" id="tab-register-btn" onclick="setAuthTab('register')" class="auth-tab-btn">
-            <i class="ph-bold ph-user-plus text-sm"></i> DAFTAR
+            <i class="ph-fill ph-user-plus text-base"></i> REGISTER
           </button>
         </div>
-
-        <!-- Hidden Title Element for main.js setAuthTab compatibility -->
-        <div id="auth-main-title" class="hidden">LOGIN WITH</div>
 
         <!-- Login Form -->
         <form id="login-form" onsubmit="handleAuthLogin(event)" class="space-y-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Username
+            <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-widest mb-1.5 pl-3">
+              USERNAME
             </label>
-            <div class="relative">
-              <input
-                type="text"
-                id="login-username"
-                required
-                autocomplete="username"
-                placeholder="Masukkan username Anda"
-                class="auth-input-field pl-10"
-              />
-              <i class="ph ph-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
-            </div>
+            <input
+              type="text"
+              id="login-username"
+              required
+              autocomplete="username"
+              placeholder="Enter your username"
+              class="auth-input-pill"
+            />
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Password
+            <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-widest mb-1.5 pl-3">
+              PASSWORD
             </label>
             <div class="relative">
               <input
@@ -114,57 +120,53 @@
                 id="login-password"
                 required
                 autocomplete="current-password"
-                placeholder="Masukkan password Anda"
-                class="auth-input-field pl-10 pr-11"
+                placeholder="Enter your password"
+                class="auth-input-pill pr-11"
               />
-              <i class="ph ph-lock-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
               <button
                 type="button"
                 onclick="togglePasswordVisibility('login-password', this)"
-                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 transition-colors p-1"
               >
-                <i class="ph ph-eye text-base"></i>
+                <i class="ph ph-eye text-lg"></i>
               </button>
             </div>
           </div>
 
-          <div class="flex items-center justify-between text-xs pt-0.5">
-            <label class="flex items-center gap-2 cursor-pointer select-none text-slate-600 dark:text-slate-400">
-              <input type="checkbox" id="login-remember" checked class="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500" />
-              <span>Ingat saya</span>
+          <div class="flex items-center justify-between text-xs text-slate-300 pt-1 px-2">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" id="login-remember" checked class="w-4 h-4 rounded bg-slate-800 border-slate-600 text-blue-500 focus:ring-0" />
+              <span>Remember me</span>
             </label>
-            <a href="javascript:void(0)" onclick="handleForgotPassword()" class="text-orange-500 hover:text-orange-600 font-medium transition-colors">
-              Lupa password?
+            <a href="javascript:void(0)" onclick="handleForgotPassword()" class="text-blue-400 hover:text-blue-300 transition-colors">
+              Forgot password?
             </a>
           </div>
 
-          <button type="submit" id="login-submit-btn" class="auth-submit-btn mt-5">
-            <span>Masuk ke Dashboard</span> <i class="ph-bold ph-arrow-right text-base"></i>
+          <button type="submit" id="login-submit-btn" class="auth-submit-btn mt-6">
+            <span>LOGIN</span> <i class="ph-bold ph-caret-right text-base"></i>
           </button>
         </form>
 
         <!-- Register Form -->
         <form id="register-form" onsubmit="handleAuthRegister(event)" class="space-y-4 hidden">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Username
+            <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-widest mb-1.5 pl-3">
+              USERNAME
             </label>
-            <div class="relative">
-              <input
-                type="text"
-                id="reg-username"
-                required
-                autocomplete="username"
-                placeholder="Pilih username Anda"
-                class="auth-input-field pl-10"
-              />
-              <i class="ph ph-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
-            </div>
+            <input
+              type="text"
+              id="reg-username"
+              required
+              autocomplete="username"
+              placeholder="Choose your username"
+              class="auth-input-pill"
+            />
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Password
+            <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-widest mb-1.5 pl-3">
+              PASSWORD
             </label>
             <div class="relative">
               <input
@@ -172,69 +174,68 @@
                 id="reg-password"
                 required
                 autocomplete="new-password"
-                placeholder="Buat password baru"
-                class="auth-input-field pl-10 pr-11"
+                placeholder="Min. 6 characters"
+                class="auth-input-pill pr-11"
               />
-              <i class="ph ph-lock-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
               <button
                 type="button"
                 onclick="togglePasswordVisibility('reg-password', this)"
-                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 transition-colors p-1"
               >
-                <i class="ph ph-eye text-base"></i>
+                <i class="ph ph-eye text-lg"></i>
               </button>
             </div>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Konfirmasi Password
+            <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-widest mb-1.5 pl-3">
+              CONFIRM PASSWORD
             </label>
             <div class="relative">
               <input
                 type="password"
                 id="reg-confirm-password"
+                required
                 autocomplete="new-password"
-                placeholder="Ulangi password Anda"
-                class="auth-input-field pl-10 pr-11"
+                placeholder="Repeat your password"
+                class="auth-input-pill pr-11"
               />
-              <i class="ph ph-shield-check absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
               <button
                 type="button"
                 onclick="togglePasswordVisibility('reg-confirm-password', this)"
-                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 transition-colors p-1"
               >
-                <i class="ph ph-eye text-base"></i>
+                <i class="ph ph-eye text-lg"></i>
               </button>
             </div>
           </div>
 
-          <button type="submit" id="reg-submit-btn" class="auth-submit-btn mt-5">
-            <span>Daftar Akun Baru</span> <i class="ph-bold ph-arrow-right text-base"></i>
+          <button type="submit" id="reg-submit-btn" class="auth-submit-btn mt-6">
+            <span>REGISTER</span> <i class="ph-bold ph-caret-right text-base"></i>
           </button>
         </form>
 
-        <!-- Auth Footer (Clean Saweria Attribution) -->
-        <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-          <a href="https://github.com/robshs" target="_blank" rel="noopener noreferrer" class="hover:text-orange-500 transition-colors flex items-center gap-1.5 font-medium">
+        <!-- Auth Footer -->
+        <div class="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+          <a href="https://github.com/robshs" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition-colors flex items-center gap-1.5">
             <i class="ph-bold ph-github-logo text-sm"></i>
-            <span>github.com/robshs</span>
+            <span>© 2026 OMNITOOLS ROBsHs</span>
           </a>
-          <span class="text-[11px] font-semibold text-slate-400">v2.5 • Fast & Secure</span>
+          <span class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 font-bold">V2.4</span>
         </div>
       </div>
     </div>
 
     <div
       id="mobile-overlay"
-      class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"
-      onclick="toggleSidebar()"></div>
+      class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden"
+      onclick="closeSidebar()"></div>
 
     <aside
       id="sidebar"
-      class="bg-themeSurface w-64 h-full flex flex-col transition-all duration-300 ease-in-out fixed lg:static z-50 transform -translate-x-full lg:translate-x-0 border-r lg:border border-themeBorder shadow-2xl shrink-0 overflow-hidden">
+      class="bg-themeSurface w-72 h-full flex flex-col transition-all duration-300 ease-in-out fixed lg:static z-50 transform -translate-x-full lg:translate-x-0 border-r lg:border border-themeBorder shadow-2xl shrink-0 overflow-hidden">
       <div
-        class="h-16 shrink-0 flex items-center px-6 justify-between bg-themeSurface sticky top-0 z-10">
+        class="h-16 shrink-0 flex items-center px-5 justify-between bg-themeSurface sticky top-0 z-10 border-b border-themeBorder/40">
         <div class="flex flex-col">
           <div class="flex items-center gap-2 text-themeText font-bold text-lg tracking-tight">
             <i class="ph-fill ph-hexagon text-primary text-2xl"></i> OmniTools
@@ -243,8 +244,9 @@
           <span class="text-[10px] text-themeMuted tracking-wider font-semibold pl-8 -mt-0.5">by RobsHs</span>
         </div>
         <button
-          class="lg:hidden text-themeMuted hover:text-themeText"
-          onclick="toggleSidebar()">
+          class="lg:hidden text-themeMuted hover:text-themeText p-1.5 rounded-lg hover:bg-themeInput transition-colors"
+          onclick="closeSidebar()"
+          aria-label="Close menu">
           <i class="ph ph-x text-xl"></i>
         </button>
       </div>
@@ -479,40 +481,41 @@
     <main
       class="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-transparent z-10 transition-colors duration-300">
       <header
-        class="h-16 shrink-0 bg-themeSurface border border-themeBorder flex items-center justify-between px-4 sm:px-6 z-20 shadow-sm transition-all duration-300">
-        <div class="flex items-center gap-4">
+        class="h-16 shrink-0 bg-themeSurface border border-themeBorder flex items-center justify-between px-3 sm:px-6 z-20 shadow-sm transition-all duration-300">
+        <div class="flex items-center gap-2 sm:gap-4 min-w-0">
           <button
-            class="lg:hidden text-themeMuted hover:text-themeText p-2 -ml-2 rounded-lg"
-            onclick="toggleSidebar()">
+            class="lg:hidden text-themeMuted hover:text-themeText p-2 -ml-1 rounded-lg shrink-0"
+            onclick="toggleSidebar()"
+            aria-label="Toggle navigation menu">
             <i class="ph ph-list text-2xl"></i>
           </button>
           <h1
             id="page-title"
-            class="text-xl font-bold text-themeText tracking-tight">
+            class="text-base sm:text-xl font-bold text-themeText tracking-tight truncate max-w-[120px] xs:max-w-[200px] sm:max-w-none">
             Dashboard
           </h1>
         </div>
-        <div class="flex items-center gap-2 sm:gap-3">
+        <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <!-- GitHub Direct Link Pill -->
           <a
             href="https://github.com/robshs"
             target="_blank"
             rel="noopener noreferrer"
-            class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 dark:bg-white/10 hover:bg-slate-800 dark:hover:bg-white/20 border border-slate-700/50 dark:border-white/20 text-xs font-semibold text-white transition-all shadow-sm">
+            class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 dark:bg-white/10 hover:bg-slate-800 dark:hover:bg-white/20 border border-slate-700/50 dark:border-white/20 text-xs font-semibold text-white transition-all shadow-sm">
             <i class="ph-bold ph-github-logo text-sm"></i>
             <span>github.com/robshs</span>
             <i class="ph ph-arrow-up-right text-[10px]"></i>
           </a>
 
-          <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
-            <i class="ph-fill ph-seal-check text-orange-500 text-sm"></i>
+          <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
+            <i class="ph-fill ph-seal-check text-blue-500 text-sm"></i>
             <span>Dev: <strong class="text-themeText font-bold">RobsHs</strong></span>
           </div>
 
           <button
             onclick="toggleTheme()"
             title="Toggle Dark/Light Mode"
-            class="text-themeMuted hover:text-primary p-2 rounded-lg hover:bg-themeInput transition-colors">
+            class="text-themeMuted hover:text-primary p-2 rounded-lg hover:bg-themeInput transition-colors shrink-0">
             <i id="theme-icon" class="ph-fill ph-moon text-xl"></i>
           </button>
 
@@ -521,13 +524,13 @@
             id="perf-mode-btn"
             onclick="togglePerformanceMode()"
             title="Toggle Eco-Glass / Performance Mode (Ringan untuk HP & Laptop)"
-            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-themeMuted hover:text-amber-500 hover:bg-themeInput transition-colors text-xs font-semibold">
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-themeMuted hover:text-amber-500 hover:bg-themeInput transition-colors text-xs font-semibold shrink-0">
             <i id="perf-mode-icon" class="ph-bold ph-lightning text-base"></i>
             <span id="perf-mode-text" class="hidden sm:inline">Eco Glass</span>
           </button>
 
           <!-- Logged in User Pill & Logout Button -->
-          <div id="header-user-pill" class="flex items-center gap-2 pl-2 border-l border-themeBorder">
+          <div id="header-user-pill" class="flex items-center gap-1.5 sm:gap-2 pl-1.5 sm:pl-2 border-l border-themeBorder shrink-0">
             <div class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-themeText">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span id="header-username">ABC</span>
@@ -535,7 +538,7 @@
             <button
               onclick="handleLogout()"
               title="Logout from session"
-              class="p-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold">
+              class="p-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold shrink-0">
               <i class="ph ph-sign-out text-base"></i>
               <span class="hidden md:inline">Logout</span>
             </button>
@@ -544,21 +547,21 @@
       </header>
 
       <div
-        class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar relative">
+        class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar relative pb-28 sm:pb-12">
         <div
           id="toast-container"
           class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
                 <section id="dashboard" class="tool-section fade-in space-y-8">
-          <!-- Saweria Minimalist Hero Banner -->
-          <div class="saweria-card p-6 sm:p-8 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 shadow-sm">
+          <!-- Executive Hero Card -->
+          <div class="glass-hero p-6 sm:p-10 border border-themeBorder shadow-lg">
             <div class="max-w-4xl">
               <!-- Badges Strip -->
-              <div class="flex flex-wrap items-center gap-2.5 mb-4">
+              <div class="flex flex-wrap items-center gap-3 mb-4">
                 <!-- Developer Verified Pill -->
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border border-orange-200/60 dark:border-orange-900/40 text-xs font-semibold">
-                  <i class="ph-fill ph-seal-check text-orange-500 text-sm"></i>
-                  <span>Dibuat & Dikembangkan oleh <strong class="text-slate-900 dark:text-white font-bold">RobsHs</strong></span>
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-600 dark:text-blue-400 text-xs font-semibold tracking-wide shadow-sm backdrop-blur-md">
+                  <i class="ph-fill ph-seal-check text-blue-500 text-base"></i>
+                  <span>Engineered & Developed by <strong class="text-themeText font-bold">RobsHs</strong></span>
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5"></span>
                 </div>
 
@@ -567,119 +570,116 @@
                   href="https://github.com/robshs"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 text-white dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-xs font-medium shadow-sm transition-all">
-                  <i class="ph-bold ph-github-logo text-sm"></i>
+                  class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 text-white dark:bg-white/10 hover:bg-slate-800 dark:hover:bg-white/20 border border-slate-700/50 dark:border-white/20 text-xs font-semibold shadow-sm transition-all hover:scale-105">
+                  <i class="ph-bold ph-github-logo text-base"></i>
                   <span>github.com/robshs</span>
                   <i class="ph ph-arrow-up-right text-[10px]"></i>
                 </a>
               </div>
 
               <!-- Hero Title -->
-              <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2.5">
-                OmniTools <span class="text-orange-500">Ultimate</span>
+              <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-themeText tracking-tight mb-3">
+                OmniTools <span class="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">Ultimate</span>
               </h1>
               
               <!-- Value Proposition -->
-              <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-6 max-w-3xl font-normal">
-                Platform utilitas pengembang & ekstraksi media modern karya RobsHs. Dilengkapi 22 modul produksi native yang berjalan langsung di backend Node.js / Express nyata dengan audio stream 128k/320k dan integrasi Google Gemini AI.
+              <p class="text-themeMuted text-sm sm:text-base leading-relaxed mb-8 max-w-3xl font-normal">
+                High-performance developer workstation & media extraction suite. 22 production-grade native cloud utilities running on an active Node.js / Express backend with zero mock dependencies, real-time 128k/320k audio streaming, and Google Gemini 3.5 Flash neural models.
               </p>
 
               <!-- Live Telemetry Badges Strip -->
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col">
-                  <div class="flex items-center gap-1.5 mb-1">
+                <div class="p-3.5 rounded-xl bg-themeInput/60 border border-themeBorder flex flex-col">
+                  <div class="flex items-center gap-2 mb-1">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Backend Live</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-themeMuted">Runtime Engine</span>
                   </div>
-                  <span class="text-sm font-bold text-slate-900 dark:text-white">Express :3005</span>
-                  <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Aktif 100%</span>
+                  <span class="text-sm font-bold text-themeText">Express 2.0 Live</span>
+                  <span class="text-[11px] text-emerald-500 font-mono mt-0.5">Active :3005</span>
                 </div>
 
-                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col">
-                  <div class="flex items-center gap-1.5 mb-1">
-                    <i class="ph-fill ph-waveform text-orange-500 text-sm"></i>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Media Pipeline</span>
+                <div class="p-3.5 rounded-xl bg-themeInput/60 border border-themeBorder flex flex-col">
+                  <div class="flex items-center gap-2 mb-1">
+                    <i class="ph-fill ph-waveform text-emerald-500 text-sm"></i>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-themeMuted">Media Pipeline</span>
                   </div>
-                  <span class="text-sm font-bold text-slate-900 dark:text-white">Audio Stream</span>
-                  <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">128k & 320k MP3</span>
+                  <span class="text-sm font-bold text-themeText">Zero-Mock Stream</span>
+                  <span class="text-[11px] text-themeMuted font-mono mt-0.5">128k & 320k MP3</span>
                 </div>
 
-                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col">
-                  <div class="flex items-center gap-1.5 mb-1">
-                    <i class="ph-fill ph-sparkle text-purple-500 text-sm"></i>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">AI Intelligence</span>
+                <div class="p-3.5 rounded-xl bg-themeInput/60 border border-themeBorder flex flex-col">
+                  <div class="flex items-center gap-2 mb-1">
+                    <i class="ph-fill ph-sparkle text-blue-500 text-sm"></i>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-themeMuted">Neural Intelligence</span>
                   </div>
-                  <span class="text-sm font-bold text-slate-900 dark:text-white">Gemini 3.5</span>
-                  <span class="text-[11px] text-purple-600 dark:text-purple-400 font-medium mt-0.5">Code & Regex</span>
+                  <span class="text-sm font-bold text-themeText">Gemini 3.5 Flash</span>
+                  <span class="text-[11px] text-blue-500 font-mono mt-0.5">Code & Regex AI</span>
                 </div>
 
-                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col">
-                  <div class="flex items-center gap-1.5 mb-1">
-                    <i class="ph-fill ph-squares-four text-blue-500 text-sm"></i>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Modul</span>
+                <div class="p-3.5 rounded-xl bg-themeInput/60 border border-themeBorder flex flex-col">
+                  <div class="flex items-center gap-2 mb-1">
+                    <i class="ph-fill ph-squares-four text-purple-500 text-sm"></i>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-themeMuted">Total Modules</span>
                   </div>
-                  <span class="text-sm font-bold text-slate-900 dark:text-white">22 Fitur</span>
-                  <span class="text-[11px] text-blue-600 dark:text-blue-400 font-medium mt-0.5">Zero Mocks</span>
+                  <span class="text-sm font-bold text-themeText">22 Active Tools</span>
+                  <span class="text-[11px] text-purple-500 font-mono mt-0.5">100% Operational</span>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- ============================================== -->
-          <!-- DATA PERANGKAT & SESI (SAWERIA MINIMALIST STYLE) -->
+          <!-- DATA PERANGKAT (Image 1 Reference) -->
           <!-- ============================================== -->
-          <div class="space-y-3.5">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="device-badge-pill">
-                  <i class="ph-bold ph-devices text-sm"></i> DATA PERANGKAT
-                </span>
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-normal hidden sm:inline">
-                  • Telemetri realtime sesi & perangkat Anda
-                </span>
+          <div class="space-y-4">
+            <!-- Centered Header with Pill -->
+            <div class="relative flex items-center justify-center my-3">
+              <div class="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent"></div>
+              <div class="relative z-10">
+                <span class="device-badge-pill">DATA PERANGKAT</span>
               </div>
             </div>
 
-            <!-- 4 Clean Device Cards Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <!-- 4 Device Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <!-- Card 1: USER -->
               <div class="device-card">
-                <div class="device-icon-box bg-orange-50 dark:bg-orange-950/40 text-orange-500">
+                <div class="device-icon-box">
                   <i class="ph-fill ph-user text-xl"></i>
                 </div>
-                <div class="device-label">PENGGUNA AKTIF</div>
+                <div class="device-label">USER</div>
                 <div id="device-user-display" class="device-val truncate font-mono">ABC</div>
               </div>
 
               <!-- Card 2: PERANGKAT -->
               <div class="device-card">
-                <div class="device-icon-box bg-sky-50 dark:bg-sky-950/40 text-sky-500">
+                <div class="device-icon-box">
                   <i id="device-os-icon" class="ph-fill ph-desktop text-xl"></i>
                 </div>
-                <div class="device-label">SISTEM OPERASI</div>
+                <div class="device-label">PERANGKAT</div>
                 <div id="device-os-display" class="device-val truncate">Windows</div>
               </div>
 
               <!-- Card 3: BATERAI -->
               <div class="device-card">
-                <div class="device-icon-box bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500">
+                <div class="device-icon-box">
                   <i id="device-battery-icon" class="ph-fill ph-battery-charging text-xl"></i>
                 </div>
-                <div class="device-label">DAYA BATERAI</div>
-                <div id="device-battery-display" class="device-val text-emerald-600 dark:text-emerald-400 font-mono text-base">
+                <div class="device-label">BATERAI</div>
+                <div id="device-battery-display" class="device-val text-blue-500 dark:text-blue-400 font-mono text-base sm:text-lg">
                   100% (charging)
                 </div>
-                <div class="w-full bg-slate-100 dark:bg-slate-700/80 rounded-full h-1.5 mt-2 overflow-hidden">
-                  <div id="device-battery-bar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" style="width: 100%"></div>
+                <div class="w-full bg-slate-200 dark:bg-slate-800/80 rounded-full h-1.5 mt-2.5 overflow-hidden border border-slate-300/40 dark:border-blue-500/20">
+                  <div id="device-battery-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-1.5 rounded-full transition-all duration-500" style="width: 100%"></div>
                 </div>
               </div>
 
               <!-- Card 4: ROLE -->
               <div class="device-card">
-                <div class="device-icon-box bg-purple-50 dark:bg-purple-950/40 text-purple-500">
+                <div class="device-icon-box">
                   <i class="ph-fill ph-shield-check text-xl"></i>
                 </div>
-                <div class="device-label">HAK AKSES / PERAN</div>
+                <div class="device-label">ROLE</div>
                 <div id="device-role-display" class="device-val truncate">Member</div>
               </div>
             </div>
@@ -1802,7 +1802,7 @@
       </div>
     </main>
 
-        <script src="public/js/api.js"></script>
-    <script src="public/js/main.js"></script>
+        <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
   </body>
 </html>

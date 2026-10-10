@@ -121,7 +121,6 @@ html.dark .ambient-orb-3 {
 }
 
 /* Glass Core Surface Rule (Lightweight iOS 26 Glassmorphic Engine) */
-aside#sidebar,
 header,
 .tool-section > div,
 #media-result,
@@ -140,13 +139,92 @@ header,
   transform: translateZ(0);
 }
 
-/* iOS Floating Sidebar Dock */
+/* Sidebar Glass Core Properties */
+aside#sidebar {
+  background-color: var(--bg-surface) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-color: var(--border-color) !important;
+  box-shadow: var(--glass-shadow);
+}
+
+/* Mobile Sidebar Drawer Navigation (< 1024px) */
+@media (max-width: 1023px) {
+  aside#sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    height: 100% !important;
+    height: 100dvh !important;
+    width: 288px !important;
+    max-width: 82vw !important;
+    z-index: 50 !important;
+    border-right: 1px solid var(--border-color) !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-radius: 0 1.5rem 1.5rem 0 !important;
+    box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.65) !important;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s ease !important;
+    transform: translate3d(-100%, 0, 0) !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  aside#sidebar.open,
+  aside#sidebar:not(.-translate-x-full) {
+    transform: translate3d(0, 0, 0) !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  aside#sidebar.-translate-x-full {
+    transform: translate3d(-100%, 0, 0) !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  #mobile-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    z-index: 45 !important;
+    transition: opacity 0.25s ease, visibility 0.25s ease !important;
+  }
+
+  #mobile-overlay.hidden {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  #mobile-overlay:not(.hidden) {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+}
+
+/* iOS Floating Sidebar Dock (Desktop >= 1024px) */
 @media (min-width: 1024px) {
   aside#sidebar {
     margin: 1rem 0 1rem 1rem;
     height: calc(100vh - 2rem) !important;
+    height: calc(100dvh - 2rem) !important;
     border-radius: 1.75rem !important;
     border: 1px solid var(--border-color) !important;
+    transform: none !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  #mobile-overlay {
+    display: none !important;
   }
   
   header {
@@ -414,7 +492,9 @@ html.dark .bento-pill-btn {
   background: radial-gradient(circle at center, rgba(10, 20, 45, 0.88) 0%, rgba(4, 7, 16, 0.97) 100%);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  padding: 1.25rem;
+  padding: 1rem;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
   transition: opacity 0.35s ease, visibility 0.35s ease;
 }
 
@@ -427,6 +507,11 @@ html.dark .bento-pill-btn {
 .auth-card {
   width: 100%;
   max-width: 440px;
+  margin: auto;
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: rgba(13, 25, 52, 0.84);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -435,7 +520,13 @@ html.dark .bento-pill-btn {
   padding: 2.25rem 2rem;
   box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.9), 0 0 35px -5px rgba(59, 130, 246, 0.3), inset 0 1px 2px 0 rgba(255, 255, 255, 0.25);
   position: relative;
-  overflow: hidden;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 1.5rem 1.25rem !important;
+    border-radius: 1.35rem !important;
+  }
 }
 
 .auth-card::before {

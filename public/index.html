@@ -53,7 +53,7 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body
-    class="bg-themeBg text-themeText font-sans h-screen flex overflow-hidden selection:bg-primary selection:text-white transition-colors duration-300">
+    class="bg-themeBg text-themeText font-sans h-screen h-[100dvh] flex overflow-hidden selection:bg-primary selection:text-white transition-colors duration-300">
     <!-- Ambient Aurora Canvas for iOS 26 Liquid Glass -->
     <div class="ambient-canvas">
       <div class="ambient-orb ambient-orb-1"></div>
@@ -228,14 +228,14 @@
 
     <div
       id="mobile-overlay"
-      class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"
-      onclick="toggleSidebar()"></div>
+      class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden"
+      onclick="closeSidebar()"></div>
 
     <aside
       id="sidebar"
-      class="bg-themeSurface w-64 h-full flex flex-col transition-all duration-300 ease-in-out fixed lg:static z-50 transform -translate-x-full lg:translate-x-0 border-r lg:border border-themeBorder shadow-2xl shrink-0 overflow-hidden">
+      class="bg-themeSurface w-72 h-full flex flex-col transition-all duration-300 ease-in-out fixed lg:static z-50 transform -translate-x-full lg:translate-x-0 border-r lg:border border-themeBorder shadow-2xl shrink-0 overflow-hidden">
       <div
-        class="h-16 shrink-0 flex items-center px-6 justify-between bg-themeSurface sticky top-0 z-10">
+        class="h-16 shrink-0 flex items-center px-5 justify-between bg-themeSurface sticky top-0 z-10 border-b border-themeBorder/40">
         <div class="flex flex-col">
           <div class="flex items-center gap-2 text-themeText font-bold text-lg tracking-tight">
             <i class="ph-fill ph-hexagon text-primary text-2xl"></i> OmniTools
@@ -244,8 +244,9 @@
           <span class="text-[10px] text-themeMuted tracking-wider font-semibold pl-8 -mt-0.5">by RobsHs</span>
         </div>
         <button
-          class="lg:hidden text-themeMuted hover:text-themeText"
-          onclick="toggleSidebar()">
+          class="lg:hidden text-themeMuted hover:text-themeText p-1.5 rounded-lg hover:bg-themeInput transition-colors"
+          onclick="closeSidebar()"
+          aria-label="Close menu">
           <i class="ph ph-x text-xl"></i>
         </button>
       </div>
@@ -480,32 +481,33 @@
     <main
       class="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-transparent z-10 transition-colors duration-300">
       <header
-        class="h-16 shrink-0 bg-themeSurface border border-themeBorder flex items-center justify-between px-4 sm:px-6 z-20 shadow-sm transition-all duration-300">
-        <div class="flex items-center gap-4">
+        class="h-16 shrink-0 bg-themeSurface border border-themeBorder flex items-center justify-between px-3 sm:px-6 z-20 shadow-sm transition-all duration-300">
+        <div class="flex items-center gap-2 sm:gap-4 min-w-0">
           <button
-            class="lg:hidden text-themeMuted hover:text-themeText p-2 -ml-2 rounded-lg"
-            onclick="toggleSidebar()">
+            class="lg:hidden text-themeMuted hover:text-themeText p-2 -ml-1 rounded-lg shrink-0"
+            onclick="toggleSidebar()"
+            aria-label="Toggle navigation menu">
             <i class="ph ph-list text-2xl"></i>
           </button>
           <h1
             id="page-title"
-            class="text-xl font-bold text-themeText tracking-tight">
+            class="text-base sm:text-xl font-bold text-themeText tracking-tight truncate max-w-[120px] xs:max-w-[200px] sm:max-w-none">
             Dashboard
           </h1>
         </div>
-        <div class="flex items-center gap-2 sm:gap-3">
+        <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <!-- GitHub Direct Link Pill -->
           <a
             href="https://github.com/robshs"
             target="_blank"
             rel="noopener noreferrer"
-            class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 dark:bg-white/10 hover:bg-slate-800 dark:hover:bg-white/20 border border-slate-700/50 dark:border-white/20 text-xs font-semibold text-white transition-all shadow-sm">
+            class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 dark:bg-white/10 hover:bg-slate-800 dark:hover:bg-white/20 border border-slate-700/50 dark:border-white/20 text-xs font-semibold text-white transition-all shadow-sm">
             <i class="ph-bold ph-github-logo text-sm"></i>
             <span>github.com/robshs</span>
             <i class="ph ph-arrow-up-right text-[10px]"></i>
           </a>
 
-          <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
+          <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
             <i class="ph-fill ph-seal-check text-blue-500 text-sm"></i>
             <span>Dev: <strong class="text-themeText font-bold">RobsHs</strong></span>
           </div>
@@ -513,7 +515,7 @@
           <button
             onclick="toggleTheme()"
             title="Toggle Dark/Light Mode"
-            class="text-themeMuted hover:text-primary p-2 rounded-lg hover:bg-themeInput transition-colors">
+            class="text-themeMuted hover:text-primary p-2 rounded-lg hover:bg-themeInput transition-colors shrink-0">
             <i id="theme-icon" class="ph-fill ph-moon text-xl"></i>
           </button>
 
@@ -522,13 +524,13 @@
             id="perf-mode-btn"
             onclick="togglePerformanceMode()"
             title="Toggle Eco-Glass / Performance Mode (Ringan untuk HP & Laptop)"
-            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-themeMuted hover:text-amber-500 hover:bg-themeInput transition-colors text-xs font-semibold">
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-themeMuted hover:text-amber-500 hover:bg-themeInput transition-colors text-xs font-semibold shrink-0">
             <i id="perf-mode-icon" class="ph-bold ph-lightning text-base"></i>
             <span id="perf-mode-text" class="hidden sm:inline">Eco Glass</span>
           </button>
 
           <!-- Logged in User Pill & Logout Button -->
-          <div id="header-user-pill" class="flex items-center gap-2 pl-2 border-l border-themeBorder">
+          <div id="header-user-pill" class="flex items-center gap-1.5 sm:gap-2 pl-1.5 sm:pl-2 border-l border-themeBorder shrink-0">
             <div class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-themeText">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span id="header-username">ABC</span>
@@ -536,7 +538,7 @@
             <button
               onclick="handleLogout()"
               title="Logout from session"
-              class="p-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold">
+              class="p-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold shrink-0">
               <i class="ph ph-sign-out text-base"></i>
               <span class="hidden md:inline">Logout</span>
             </button>
@@ -545,7 +547,7 @@
       </header>
 
       <div
-        class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar relative">
+        class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar relative pb-28 sm:pb-12">
         <div
           id="toast-container"
           class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>

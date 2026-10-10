@@ -412,18 +412,58 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof renderMarkdown === "function") renderMarkdown();
 });
 
-function toggleSidebar() {
+function openSidebar() {
   const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("mobile-overlay");
-  if (sidebar) sidebar.classList.toggle("-translate-x-full");
-  if (overlay) overlay.classList.toggle("hidden");
+  if (sidebar) {
+    sidebar.classList.remove("-translate-x-full");
+    sidebar.classList.add("open");
+  }
+  if (overlay) {
+    overlay.classList.remove("hidden");
+  }
+  document.body.classList.add("sidebar-open");
 }
 
+function closeSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("mobile-overlay");
+  if (sidebar) {
+    sidebar.classList.add("-translate-x-full");
+    sidebar.classList.remove("open");
+  }
+  if (overlay) {
+    overlay.classList.add("hidden");
+  }
+  document.body.classList.remove("sidebar-open");
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  if (!sidebar) return;
+  const isClosed = sidebar.classList.contains("-translate-x-full") || !sidebar.classList.contains("open");
+  if (isClosed) {
+    openSidebar();
+  } else {
+    closeSidebar();
+  }
+}
+
+// Close sidebar on Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeSidebar();
+  }
+});
+
 function switchTab(tabId, el) {
+  currentTab = tabId;
+
+  const activeNav = el || document.querySelector(`[data-target="${tabId}"]`);
   const pageTitle = document.getElementById("page-title");
-  if (pageTitle && el) {
-    const titleSpan = el.querySelector("span:not(.bg-red-500\\/20)");
-    if (titleSpan) pageTitle.innerHTML = titleSpan.innerText;
+  if (pageTitle && activeNav) {
+    const titleSpan = activeNav.querySelector("span:not(.bg-red-500\\/20)");
+    if (titleSpan) pageTitle.innerText = titleSpan.innerText.trim();
   }
 
   document.querySelectorAll(".tool-section").forEach((sec) => {
@@ -443,9 +483,9 @@ function switchTab(tabId, el) {
     nav.classList.add("text-themeMuted");
   });
 
-  if (el) {
-    el.classList.add("text-primary", "bg-primary/10", "font-medium");
-    el.classList.remove("text-themeMuted");
+  if (activeNav) {
+    activeNav.classList.add("text-primary", "bg-primary/10", "font-medium");
+    activeNav.classList.remove("text-themeMuted");
   }
 
   if (
@@ -456,16 +496,21 @@ function switchTab(tabId, el) {
     fetchIP();
   }
 
-  if (window.innerWidth < 1024) toggleSidebar();
+  // Smooth scroll container to top
+  const mainScroll = document.querySelector("main .overflow-y-auto");
+  if (mainScroll) {
+    mainScroll.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Always close sidebar drawer on mobile after switching tab
+  if (window.innerWidth < 1024) {
+    closeSidebar();
+  }
 }
 
 function navigateToTool(tabId) {
   const navBtn = document.querySelector(`[data-target="${tabId}"]`);
-  if (navBtn) {
-    navBtn.click();
-  } else {
-    switchTab(tabId);
-  }
+  switchTab(tabId, navBtn || null);
 }
 
 // --- Toast Notifications ---
