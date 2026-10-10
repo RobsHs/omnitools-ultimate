@@ -48,12 +48,13 @@ const api = {
     try {
       response = await fetch(url, config);
     } catch (err) {
-      if (!url.startsWith('http://localhost:3005')) {
+      const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || !window.location.hostname);
+      if (isLocal && !url.startsWith('http://localhost:3005')) {
         console.warn(`[API] Connection to ${url} failed, retrying on http://localhost:3005...`);
         url = `http://localhost:3005${endpoint}`;
         response = await fetch(url, config);
       } else {
-        throw new Error('Unable to connect to OmniTools backend server. Make sure it is running on port 3005.');
+        throw new Error(err.message || 'Unable to connect to OmniTools backend server.');
       }
     }
 

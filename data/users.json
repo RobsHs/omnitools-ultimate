@@ -43,5 +43,14 @@
     "role": "Member",
     "createdAt": "2026-10-10T10:26:13.916Z",
     "lastLogin": "2026-10-10T10:26:13.917Z"
+  },
+  {
+    "id": "usr_cf63e163e066dea6",
+    "username": "CloudTester",
+    "salt": "57464490ad1754382ab606926abf7810",
+    "hash": "4c24cdbba0528080f0ebd581a2b376d5dfd7df26b0f6384831f89f9794588aef8ec1cce2ccf6faaf54ccb9f4c1ebc31720e98cf7b0fb70c3c55e72ee8b7b6293",
+    "role": "Member",
+    "createdAt": "2026-10-10T11:26:01.728Z",
+    "lastLogin": "2026-10-10T11:26:01.728Z"
   }
 ]
