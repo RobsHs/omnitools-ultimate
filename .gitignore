@@ -1,11 +1,19 @@
 # Dependencies
 node_modules/
 
-# Secrets
+# Environment variables & Sensitive Keys
 .env
 .env.local
 *.env
 
-# Temp
-*.log
+# Runtime Temporary Files & Caches
+temp/
 tmp/
+*.log
+npm-debug.log*
+
+# OS & Editor generated files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
