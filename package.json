@@ -27,7 +27,6 @@
     "multer": "^2.4.0",
     "play-dl": "^1.9.7",
     "spotify-url-info": "^3.3.3",
-    "whois-json": "^2.0.4",
     "yt-search": "^2.13.1"
   },
   "devDependencies": {

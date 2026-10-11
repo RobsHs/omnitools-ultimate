@@ -10,7 +10,7 @@ const dns = require('dns').promises;
 const axios = require('axios');
 const multer = require('multer');
 const FormData = require('form-data');
-const whois = require('whois-json');
+const net = require('net');
 const spotifyUrlInfo = require('spotify-url-info')(fetch);
 const yts = require('yt-search');
 const play = require('play-dl');
@@ -40,6 +40,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Serverless URL normalizer for Vercel / Cloud functions
 app.use((req, res, next) => {
+  const matchedPath = req.headers['x-matched-path'];
+  if (matchedPath && matchedPath.startsWith('/api')) {
+    req.url = matchedPath;
+    return next();
+  }
+
   if (req.url === '/' || req.url === '/index.html') {
     return next();
   }
@@ -754,6 +760,56 @@ app.post('/api/network/dns', async (req, res) => {
   }
 });
 
+// Native TCP WHOIS resolver (Serverless & Zero-dependency compatible)
+function queryWhois(domain) {
+  return new Promise((resolve) => {
+    try {
+      const parts = domain.split('.');
+      const tld = parts[parts.length - 1].toLowerCase();
+      let whoisServer = 'whois.iana.org';
+      if (tld === 'com' || tld === 'net') whoisServer = 'whois.verisign-grs.com';
+      else if (tld === 'org') whoisServer = 'whois.pir.org';
+      else if (tld === 'io') whoisServer = 'whois.nic.io';
+      else if (tld === 'id') whoisServer = 'whois.id';
+      else if (tld === 'me') whoisServer = 'whois.nic.me';
+      else if (tld === 'co') whoisServer = 'whois.nic.co';
+      else if (tld === 'info') whoisServer = 'whois.afilias.net';
+      else if (tld === 'biz') whoisServer = 'whois.biz';
+      else if (tld === 'xyz') whoisServer = 'whois.nic.xyz';
+      else if (tld === 'dev' || tld === 'app') whoisServer = 'whois.nic.google';
+
+      const socket = net.createConnection(43, whoisServer, () => {
+        socket.write(domain + '\r\n');
+      });
+      socket.setTimeout(4500);
+      let buffer = '';
+      socket.on('data', (data) => { buffer += data.toString(); });
+      socket.on('timeout', () => { socket.destroy(); resolve(null); });
+      socket.on('error', () => { resolve(null); });
+      socket.on('close', () => {
+        if (!buffer) return resolve(null);
+        const result = {};
+        const lines = buffer.split('\n');
+        for (const line of lines) {
+          const match = line.match(/^([^:]+):\s*(.+)$/);
+          if (match) {
+            const key = match[1].trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+            const val = match[2].trim();
+            if (key === 'domainname') result.domainName = val;
+            if (key === 'registrar') result.registrar = val;
+            if (key === 'creationdate' || key === 'created') result.creationDate = val;
+            if (key === 'domainstatus' || key === 'status') result.domainStatus = val;
+            if (key === 'nameserver') result.nameServer = (result.nameServer ? result.nameServer + ', ' : '') + val;
+          }
+        }
+        resolve(Object.keys(result).length > 0 ? result : null);
+      });
+    } catch (_) {
+      resolve(null);
+    }
+  });
+}
+
 // 9. Domain Availability Checker (whois + DNS verification)
 app.post('/api/network/domain', async (req, res) => {
   try {
@@ -769,7 +825,7 @@ app.post('/api/network/domain', async (req, res) => {
     let isRegistered = false;
 
     try {
-      whoisData = await whois(cleanDomain);
+      whoisData = await queryWhois(cleanDomain);
       if (
         whoisData &&
         (whoisData.domainName ||
