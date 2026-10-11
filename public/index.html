@@ -1719,13 +1719,17 @@
         <section id="ai-regex" class="tool-section hidden">
           <div
             class="max-w-3xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 shadow-sm">
-            <h2 class="text-xl font-bold text-themeText mb-2">
-              <i class="ph-fill ph-magic-wand text-purple-500"></i> AI Regex
-              Builder
-            </h2>
+            <div class="flex items-center justify-between mb-2">
+              <h2 class="text-xl font-bold text-themeText">
+                <i class="ph-fill ph-magic-wand text-purple-500"></i> AI Regex Builder
+              </h2>
+              <div class="flex items-center gap-1.5 bg-themeInput/80 p-1 rounded-xl border border-themeBorder text-xs">
+                <button type="button" id="regex-lang-id" onclick="setRegexLanguage('id')" class="px-2.5 py-1 rounded-lg font-bold bg-primary text-white transition-all shadow-sm">🇮🇩 Indonesia</button>
+                <button type="button" id="regex-lang-en" onclick="setRegexLanguage('en')" class="px-2.5 py-1 rounded-lg text-themeMuted hover:text-themeText font-medium transition-all">🇬🇧 English</button>
+              </div>
+            </div>
             <p class="text-sm text-themeMuted mb-6">
-              Describe what you want to match, and AI will generate the Regular
-              Expression. (Simulation)
+              Jelaskan pola yang ingin dicocokkan, AI akan menghasilkan pola Regular Expression lengkap beserta penjelasan token secara instan.
             </p>
             <form onsubmit="handleAiRegex(event)" class="flex gap-4 mb-6">
               <input
@@ -1768,9 +1772,12 @@
         <section id="ai-code" class="tool-section hidden h-full flex flex-col">
           <div class="flex justify-between items-center mb-4 shrink-0">
             <h2 class="text-xl font-bold text-themeText">
-              <i class="ph-fill ph-terminal-window text-blue-500"></i> AI Code
-              Explainer
+              <i class="ph-fill ph-terminal-window text-blue-500"></i> AI Code Explainer
             </h2>
+            <div class="flex items-center gap-1.5 bg-themeInput/80 p-1 rounded-xl border border-themeBorder text-xs">
+              <button type="button" id="ai-lang-id" onclick="setAiLanguage('id')" class="px-2.5 py-1 rounded-lg font-bold bg-primary text-white transition-all shadow-sm">🇮🇩 Indonesia</button>
+              <button type="button" id="ai-lang-en" onclick="setAiLanguage('en')" class="px-2.5 py-1 rounded-lg text-themeMuted hover:text-themeText font-medium transition-all">🇬🇧 English</button>
+            </div>
           </div>
           <div
             class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-[400px]">

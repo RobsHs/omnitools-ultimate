@@ -1114,6 +1114,40 @@ function updateColors() {
 // --- AI TOOLS (POWERED BY REAL GEMINI) ---
 // ==========================================
 
+// Language preferences for AI tools (default: id)
+let currentRegexLang = 'id';
+let currentCodeLang = 'id';
+
+function setRegexLanguage(lang) {
+  currentRegexLang = lang;
+  const btnId = document.getElementById("regex-lang-id");
+  const btnEn = document.getElementById("regex-lang-en");
+  if (btnId && btnEn) {
+    if (lang === 'id') {
+      btnId.className = "px-2.5 py-1 rounded-lg font-bold bg-primary text-white transition-all shadow-sm";
+      btnEn.className = "px-2.5 py-1 rounded-lg text-themeMuted hover:text-themeText font-medium transition-all";
+    } else {
+      btnEn.className = "px-2.5 py-1 rounded-lg font-bold bg-primary text-white transition-all shadow-sm";
+      btnId.className = "px-2.5 py-1 rounded-lg text-themeMuted hover:text-themeText font-medium transition-all";
+    }
+  }
+}
+
+function setAiLanguage(lang) {
+  currentCodeLang = lang;
+  const btnId = document.getElementById("ai-lang-id");
+  const btnEn = document.getElementById("ai-lang-en");
+  if (btnId && btnEn) {
+    if (lang === 'id') {
+      btnId.className = "px-2.5 py-1 rounded-lg font-bold bg-primary text-white transition-all shadow-sm";
+      btnEn.className = "px-2.5 py-1 rounded-lg text-themeMuted hover:text-themeText font-medium transition-all";
+    } else {
+      btnEn.className = "px-2.5 py-1 rounded-lg font-bold bg-primary text-white transition-all shadow-sm";
+      btnId.className = "px-2.5 py-1 rounded-lg text-themeMuted hover:text-themeText font-medium transition-all";
+    }
+  }
+}
+
 async function handleAiRegex(e) {
   e.preventDefault();
   const prompt = document.getElementById("regex-prompt").value.trim();
@@ -1127,7 +1161,7 @@ async function handleAiRegex(e) {
   btn.disabled = true;
 
   try {
-    const data = await api.generateAiRegex(prompt);
+    const data = await api.generateAiRegex(prompt, currentRegexLang);
     resultBox.classList.remove("hidden");
     outRegex.innerText = data.regex || data.pattern;
     outExplain.innerHTML = data.explanation || "Regex pattern created successfully.";
@@ -1156,7 +1190,7 @@ async function handleAiCode() {
   btn.disabled = true;
 
   try {
-    const data = await api.explainAiCode(code);
+    const data = await api.explainAiCode(code, currentCodeLang);
     if (typeof marked !== "undefined" && data.explanation) {
       outBox.innerHTML = marked.parse(data.explanation);
     } else {

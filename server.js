@@ -688,80 +688,114 @@ async function callFastAI({ systemPrompt, userPrompt, jsonMode = false }) {
   return null;
 }
 
+// Helper to detect Indonesian queries
+function detectIndonesian(text) {
+  if (!text) return true;
+  const idPattern = /\b(buat|buatkan|bikin|tolong|untuk|nomor|nomer|telepon|hp|surel|email|sandi|kata\s*sandi|password|tanggal|huruf|angka|atau|dan|yang|diawali|diakhiri|hanya|cek|validasi|indonesia|rupiah|ktp|nik|kode|jelaskan|fungsi|apa|kenapa|mengapa|bagaimana|dengan|dari|pada|adalah|ini|itu|bisa|tidak|nggak|jangan|harus|tampilkan|berikan|artinya|maksudnya|penjelasan|artikan)\b/i;
+  if (idPattern.test(text)) return true;
+  const enPattern = /\b(match|validate|extract|starting with|contains|phone number|postal code|digits only|letters only|alphanumeric|password validation)\b/i;
+  if (enPattern.test(text)) return false;
+  return true; // Default to Indonesian
+}
+
 // Built-in Heuristic Regex Knowledge Base (Instantaneous 0ms Fallback)
-function generateLocalFallbackRegex(prompt) {
+function generateLocalFallbackRegex(prompt, isId = true) {
   const p = prompt.toLowerCase();
 
   if (p.includes('indonesia') && (p.includes('hp') || p.includes('telepon') || p.includes('phone') || p.includes('nomor') || p.includes('08') || p.includes('+62'))) {
     return {
       regex: '/^(?:\\+62|62|0)8[1-9][0-9]{7,10}$/',
-      explanation: 'Matches Indonesian mobile phone numbers starting with +62, 62, or 0 followed by 8 and 8-11 digits (e.g. 08123456789, +6281234567890).'
+      explanation: isId
+        ? 'Mencocokkan nomor telepon seluler Indonesia yang diawali dengan prefix +62, 62, atau 0 diikuti angka 8 dan 7-10 digit berikutnya (contoh: 08123456789, +6281234567890).'
+        : 'Matches Indonesian mobile phone numbers starting with +62, 62, or 0 followed by 8 and 7-10 digits (e.g. 08123456789, +6281234567890).'
     };
   }
   if (p.includes('email') || p.includes('surel')) {
     return {
       regex: '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/i',
-      explanation: 'Validates standard RFC 5322 compliant email addresses including username, @ separator, valid domain name, and TLD.'
+      explanation: isId
+        ? 'Memvalidasi alamat email standar RFC 5322 lengkap dengan username, pemisah @, nama domain, dan TLD (minimal 2 karakter).'
+        : 'Validates standard RFC 5322 compliant email addresses including username, @ separator, valid domain name, and TLD.'
     };
   }
   if (p.includes('url') || p.includes('link') || p.includes('website') || p.includes('http')) {
     return {
       regex: '/^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$/i',
-      explanation: 'Validates HTTP and HTTPS URLs with protocol, optional subdomain, valid host, and query/hash parameters.'
+      explanation: isId
+        ? 'Memvalidasi URL web berprotokol HTTP/HTTPS dengan subdomain opsional, nama domain terdaftar, dan parameter path/query.'
+        : 'Validates HTTP and HTTPS URLs with protocol, optional subdomain, valid host, and query/hash parameters.'
     };
   }
   if (p.includes('ipv4') || (p.includes('ip') && !p.includes('ipv6'))) {
     return {
       regex: '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/',
-      explanation: 'Validates standard IPv4 addresses ensuring each octet is strictly between 0 and 255.'
+      explanation: isId
+        ? 'Memvalidasi alamat IPv4 dengan memastikan 4 oktet desimal bernilai antara 0 hingga 255.'
+        : 'Validates standard IPv4 addresses ensuring each octet is strictly between 0 and 255.'
     };
   }
   if (p.includes('ipv6')) {
     return {
       regex: '/^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/i',
-      explanation: 'Validates complete hexadecimal IPv6 addresses with 8 groups of 4-digit hex characters.'
+      explanation: isId
+        ? 'Memvalidasi alamat IPv6 lengkap dengan 8 kelompok angka heksadesimal 4 digit.'
+        : 'Validates complete hexadecimal IPv6 addresses with 8 groups of 4-digit hex characters.'
     };
   }
   if (p.includes('password') || p.includes('sandi')) {
     return {
       regex: '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$/',
-      explanation: 'Ensures strong passwords containing at least 8 characters, one lowercase letter, one uppercase letter, one digit, and one special character.'
+      explanation: isId
+        ? 'Memvalidasi kata sandi kuat minimal 8 karakter dengan kombinasi huruf kecil, huruf besar, angka, dan karakter khusus.'
+        : 'Ensures strong passwords containing at least 8 characters, one lowercase letter, one uppercase letter, one digit, and one special character.'
     };
   }
   if (p.includes('rupiah') || p.includes('idr') || p.includes('uang')) {
     return {
       regex: '/^(?:Rp\\s?)?[0-9]{1,3}(?:\\.[0-9]{3})*(?:,[0-9]{2})?$/i',
-      explanation: 'Matches Indonesian Rupiah (IDR) currency formatting with optional "Rp", period thousands separators, and comma decimal cents.'
+      explanation: isId
+        ? 'Mencocokkan format mata uang Rupiah (IDR) dengan awalan Rp opsional, tanda titik ribuan, dan koma desimal.'
+        : 'Matches Indonesian Rupiah (IDR) currency formatting with optional "Rp", period thousands separators, and comma decimal cents.'
     };
   }
   if (p.includes('nik') || p.includes('ktp')) {
     return {
       regex: '/^[1-9][0-9]{15}$/',
-      explanation: 'Validates 16-digit Indonesian National Identity Numbers (NIK / KTP) without starting zero.'
+      explanation: isId
+        ? 'Memvalidasi 16 digit Nomor Induk Kependudukan (NIK / KTP) Indonesia tanpa awalan angka nol.'
+        : 'Validates 16-digit Indonesian National Identity Numbers (NIK / KTP) without starting zero.'
     };
   }
   if (p.includes('date') || p.includes('tanggal')) {
     return {
       regex: '/^\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])$/',
-      explanation: 'Validates ISO-8601 calendar dates in YYYY-MM-DD format with month (01-12) and day (01-31) bounds.'
+      explanation: isId
+        ? 'Memvalidasi tanggal kalender format ISO-8601 (YYYY-MM-DD) dengan batas bulan 01-12 dan hari 01-31.'
+        : 'Validates ISO-8601 calendar dates in YYYY-MM-DD format with month (01-12) and day (01-31) bounds.'
     };
   }
   if (p.includes('hex') || p.includes('color') || p.includes('warna')) {
     return {
       regex: '/^#?([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/',
-      explanation: 'Matches 3-digit and 6-digit CSS hexadecimal color codes with optional leading #.'
+      explanation: isId
+        ? 'Mencocokkan kode warna heksadesimal CSS 3 atau 6 digit dengan awalan pagar (#) opsional.'
+        : 'Matches 3-digit and 6-digit CSS hexadecimal color codes with optional leading #.'
     };
   }
   if (p.includes('uuid')) {
     return {
       regex: '/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/i',
-      explanation: 'Validates RFC 4122 canonical UUIDs (v1 through v5) with standard 8-4-4-4-12 hex formatting.'
+      explanation: isId
+        ? 'Memvalidasi UUID standar kanonik RFC 4122 (versi 1 hingga 5).'
+        : 'Validates RFC 4122 canonical UUIDs (v1 through v5) with standard 8-4-4-4-12 hex formatting.'
     };
   }
   if (p.includes('slug') || p.includes('username')) {
     return {
       regex: '/^[a-zA-Z0-9_-]{3,24}$/',
-      explanation: 'Matches valid alphanumeric usernames or URL slugs between 3 and 24 characters with hyphens and underscores.'
+      explanation: isId
+        ? 'Mencocokkan username atau slug URL alfanumerik antara 3 hingga 24 karakter dengan tanda hubung dan garis bawah.'
+        : 'Matches valid alphanumeric usernames or URL slugs between 3 and 24 characters with hyphens and underscores.'
     };
   }
 
@@ -769,18 +803,40 @@ function generateLocalFallbackRegex(prompt) {
   const words = prompt.replace(/[^a-zA-Z0-9\s]/g, '').trim().split(/\s+/).slice(0, 3).join('|');
   return {
     regex: `/(?:${words || 'pattern'})/i`,
-    explanation: `General pattern matching user requirements for: "${prompt}". Generated by OmniTools High-Speed Engine.`
+    explanation: isId
+      ? `Pola pencocokan umum untuk kebutuhan: "${prompt}". Dihasilkan oleh OmniTools Engine.`
+      : `General pattern matching user requirements for: "${prompt}". Generated by OmniTools High-Speed Engine.`
   };
 }
 
 // Built-in Heuristic Code Explainer (Instantaneous 0ms Fallback)
-function generateLocalFallbackExplanation(code) {
+function generateLocalFallbackExplanation(code, isId = true) {
   const lines = code.trim().split('\n');
   const hasAsync = /async|await|Promise/i.test(code);
   const hasLoops = /for\s*\(|while\s*\(|forEach|\.map\(/i.test(code);
   const hasConditions = /if\s*\(|else|switch|case/i.test(code);
   const functions = (code.match(/function\s+([a-zA-Z0-9_]+)|\b([a-zA-Z0-9_]+)\s*=\s*(?:async\s*)?\(/g) || []).map(f => f.trim());
   const classes = (code.match(/class\s+([a-zA-Z0-9_]+)/g) || []).map(c => c.trim());
+
+  if (isId) {
+    return `### ⚡ Ringkasan & Analisis Kode
+Potongan kode ini berisi **${lines.length} baris** logika program terstruktur.
+
+#### 1. Komponen Arsitektur Utama
+- **Fungsi / Metode Terdeteksi:** ${functions.length > 0 ? functions.join(', ') : 'Eksekusi tingkat script / anonim'}
+- **Kelas / Entitas:** ${classes.length > 0 ? classes.join(', ') : 'Tidak ada (Gaya Prosedural / Fungsional)'}
+- **Eksekusi Asinkron:** ${hasAsync ? '✅ Menggunakan alur asinkron (`async/await` / Promise).' : '⚡ Eksekusi sinkron / langsung.'}
+- **Kontrol Alur:** ${hasLoops ? 'Terdapat struktur perulangan (`loop` / iterasi array). ' : ''}${hasConditions ? 'Terdapat percabangan kondisi (`if/else`).' : ''}
+
+#### 2. Kompleksitas & Efisiensi
+- **Estimasi Kompleksitas Waktu:** ${hasLoops ? 'O(n) hingga O(n²)' : 'O(1) waktu konstan'} bergantung pada kedalaman iterasi.
+- **Kompleksitas Ruang:** O(1) overhead memori tetap kecuali mengalokasikan array dinamis atau buffer memori besar.
+
+#### 3. Saran & Praktik Terbaik
+- Pastikan validasi input dilakukan sebelum memproses parameter.
+- Pertimbangkan membungkus operasi berisiko dalam blok \`try...catch\` untuk keandalan runtime.
+- Pertahankan konsistensi penamaan variabel (\`const\` / \`let\`).`;
+  }
 
   return `### ⚡ Code Overview & Analysis
 This code snippet contains **${lines.length} lines** of structured program logic.
@@ -804,14 +860,31 @@ This code snippet contains **${lines.length} lines** of structured program logic
 // 5. AI Regex Generator Endpoint (High-Speed Multi-Engine)
 app.post('/api/ai/regex', async (req, res) => {
   try {
-    const { prompt } = req.body;
+    const { prompt, language } = req.body;
     if (!prompt) {
       return res.status(400).json({ error: 'Regex prompt description is required.' });
     }
 
-    const systemPrompt = `You are an expert Regular Expression engine.
+    const isId = language === 'en' ? false : (language === 'id' ? true : detectIndonesian(prompt));
+
+    const systemPrompt = isId
+      ? `Anda adalah mesin Regular Expression profesional dan arsitek perangkat lunak kelas dunia.
+Pengguna meminta pola regex untuk: "${prompt}".
+ATURAN BAHASA MUTLAK:
+- Seluruh teks penjelasan (field "explanation") WAJIB ditulis dalam BAHASA INDONESIA yang lugas, profesional, dan terstruktur.
+- JANGAN menjawab atau menjelaskan dalam Bahasa Inggris!
+- Jelaskan fungsi pola, anchor (^ dan $), token, grup karakter, dan flags secara mendalam.
+
+Kembalikan objek JSON murni tanpa markdown pembungkus:
+{
+  "regex": "/.../flags",
+  "explanation": "Penjelasan detail aturan pola, token, anchor, dan flags dalam Bahasa Indonesia."
+}`
+      : `You are an expert Regular Expression engine and software architect.
 The user wants a regex for: "${prompt}".
-Return a valid, strict JSON object with NO surrounding markdown backticks or commentary, matching this exact schema:
+Provide the breakdown explaining the tokens, anchors, and character classes clearly in English.
+
+Return a strict JSON object with NO surrounding markdown backticks:
 {
   "regex": "/.../flags",
   "explanation": "Detailed breakdown explaining the tokens, anchors, and character classes."
@@ -819,7 +892,7 @@ Return a valid, strict JSON object with NO surrounding markdown backticks or com
 
     const aiResult = await callFastAI({
       systemPrompt,
-      userPrompt: `Generate regex pattern for: ${prompt}`,
+      userPrompt: isId ? `Buatkan pola regex untuk: ${prompt}` : `Generate regex pattern for: ${prompt}`,
       jsonMode: true,
     });
 
@@ -847,7 +920,7 @@ Return a valid, strict JSON object with NO surrounding markdown backticks or com
         return res.json({
           success: true,
           regex: regPattern,
-          explanation: parsed.explanation || 'Regex generated successfully.',
+          explanation: parsed.explanation || (isId ? 'Pola regex berhasil dibuat.' : 'Regex generated successfully.'),
           engine: aiResult.provider,
         });
       }
@@ -863,7 +936,7 @@ Return a valid, strict JSON object with NO surrounding markdown backticks or com
     }
 
     // High-speed rule-based heuristic fallback
-    const fallback = generateLocalFallbackRegex(prompt);
+    const fallback = generateLocalFallbackRegex(prompt, isId);
     return res.json({
       success: true,
       regex: fallback.regex,
@@ -872,7 +945,8 @@ Return a valid, strict JSON object with NO surrounding markdown backticks or com
     });
   } catch (error) {
     console.error('AI Regex Error:', error);
-    const fallback = generateLocalFallbackRegex(req.body?.prompt || '');
+    const isId = req.body?.language === 'en' ? false : true;
+    const fallback = generateLocalFallbackRegex(req.body?.prompt || '', isId);
     return res.json({
       success: true,
       regex: fallback.regex,
@@ -885,13 +959,28 @@ Return a valid, strict JSON object with NO surrounding markdown backticks or com
 // 6. AI Code Explainer Endpoint (High-Speed Multi-Engine)
 app.post('/api/ai/explain', async (req, res) => {
   try {
-    const { code } = req.body;
+    const { code, language } = req.body;
     if (!code) {
       return res.status(400).json({ error: 'Code snippet is required.' });
     }
 
-    const systemPrompt = `You are a Senior Full-Stack Engineer and Code Reviewer.
-Analyze and explain the provided code snippet clearly and concisely.
+    const isId = language !== 'en'; // Default to Indonesian unless explicitly requested in English
+
+    const systemPrompt = isId
+      ? `Anda adalah Senior Full-Stack Engineer dan Code Reviewer berpengalaman.
+Analisis dan jelaskan potongan kode berikut secara mendalam, profesional, dan terstruktur.
+ATURAN BAHASA MUTLAK:
+- Anda WAJIB memberikan seluruh analisis dan penjelasan dalam BAHASA INDONESIA yang fasih, ramah, dan profesional.
+- JANGAN menggunakan Bahasa Inggris untuk narasi penjelasan (istilah teknis pemrograman seperti 'arrow function', 'variable', 'Promise' boleh tetap digunakan).
+
+Gunakan format Markdown berikut:
+1. **Ringkasan (Overview)**: Apa yang dilakukan oleh kode ini secara keseluruhan.
+2. **Komponen Utama**: Analisis mendalam per variabel, logika, struktur kontrol, dan alur eksekusi.
+3. **Kompleksitas & Efisiensi**: Analisis Time Complexity (O) dan Space Complexity (O).
+4. **Saran & Praktik Terbaik**: Rekomendasi optimasi, penanganan error, validasi input, atau potensi bug.`
+      : `You are a Senior Full-Stack Engineer and Code Reviewer.
+Analyze and explain the provided code snippet clearly and concisely in professional English.
+
 Provide your response in clean Markdown with:
 1. **Overview**: Summary of what the code does.
 2. **Key Components**: Bulleted breakdown of major variables, logic, and patterns.
@@ -900,7 +989,7 @@ Provide your response in clean Markdown with:
 
     const aiResult = await callFastAI({
       systemPrompt,
-      userPrompt: `Analyze and explain this code:\n\`\`\`\n${code}\n\`\`\``,
+      userPrompt: isId ? `Jelaskan kode berikut ini secara mendalam:\n\`\`\`\n${code}\n\`\`\`` : `Analyze and explain this code:\n\`\`\`\n${code}\n\`\`\``,
       jsonMode: false,
     });
 
@@ -915,14 +1004,15 @@ Provide your response in clean Markdown with:
     // High-speed heuristic fallback
     return res.json({
       success: true,
-      explanation: generateLocalFallbackExplanation(code),
+      explanation: generateLocalFallbackExplanation(code, isId),
       engine: 'OmniTools Code Analyzer (Heuristic)',
     });
   } catch (error) {
     console.error('AI Code Explainer Error:', error);
+    const isId = req.body?.language !== 'en';
     return res.json({
       success: true,
-      explanation: generateLocalFallbackExplanation(req.body?.code || ''),
+      explanation: generateLocalFallbackExplanation(req.body?.code || '', isId),
       engine: 'OmniTools Code Analyzer (Heuristic Fallback)',
     });
   }

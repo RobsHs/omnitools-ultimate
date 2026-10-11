@@ -116,17 +116,17 @@ const api = {
   },
 
   // --- AI Endpoints ---
-  async generateAiRegex(prompt) {
+  async generateAiRegex(prompt, language = 'id') {
     return this.request('/api/ai/regex', {
       method: 'POST',
-      body: { prompt },
+      body: { prompt, language },
     });
   },
 
-  async explainAiCode(code) {
+  async explainAiCode(code, language = 'id') {
     return this.request('/api/ai/explain', {
       method: 'POST',
-      body: { code },
+      body: { code, language },
     });
   },
 
