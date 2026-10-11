@@ -1,6 +1,6 @@
 require('dotenv').config();
 const os = require('os');
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const ffmpeg = require('ffmpeg-static');
 const express = require('express');
 const cors = require('cors');
@@ -270,6 +270,31 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Python runtime detector
+function getPythonCommand() {
+  const candidates = process.platform === 'win32'
+    ? ['python', 'py']
+    : ['python3', 'python', '/usr/bin/python3', '/usr/bin/python'];
+  for (const cmd of candidates) {
+    try {
+      const res = execSync(`${cmd} --version`, { stdio: 'pipe' });
+      if (res && res.toString().toLowerCase().includes('python')) {
+        return cmd;
+      }
+    } catch (_) {}
+  }
+  return null;
+}
+
+// yt-dlp arguments resolver (uses local zipapp if available or -m yt_dlp)
+function getYtDlpBaseArgs() {
+  const localZipapp = path.join(__dirname, 'yt-dlp.zipapp');
+  if (fs.existsSync(localZipapp)) {
+    return [localZipapp];
+  }
+  return ['-m', 'yt_dlp'];
+}
+
 // --- REAL STREAMING DOWNLOAD PIPELINE ---
 app.get('/api/download/stream', async (req, res) => {
   const { url, format, title, videoId } = req.query;
@@ -283,7 +308,7 @@ app.get('/api/download/stream', async (req, res) => {
     .replace(/\s+/g, '_')
     .substring(0, 80) || 'download';
 
-  // Direct proxy stream (for TikTok CDN, direct MP4 or direct MP3)
+  // 1. Direct proxy stream (for TikTok CDN, direct MP4 or direct MP3)
   if (format === 'direct') {
     try {
       const isAudio = req.query.isAudio === 'true';
@@ -297,7 +322,7 @@ app.get('/api/download/stream', async (req, res) => {
         headers: {
           'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-          'Referer': 'https://www.tiktok.com/',
+          'Referer': url.includes('tiktok') ? 'https://www.tiktok.com/' : undefined,
         },
         timeout: 45000,
       });
@@ -310,34 +335,30 @@ app.get('/api/download/stream', async (req, res) => {
       return response.data.pipe(res);
     } catch (err) {
       console.error('Direct stream error:', err.message);
-      // Graceful fallback redirect directly to stream URL
+      // Fallback: direct stream URL itself
       return res.redirect(url);
     }
   }
 
-  // Check if running on Vercel / serverless environment
+  // 2. Check Python availability for yt-dlp transcoding
+  const pythonCmd = getPythonCommand();
   const isServerless = process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
-  // In Serverless / Vercel (where Python/ffmpeg cannot run locally)
-  if (isServerless) {
-    const extractedId = videoId || (url.match(/(?:v=|\/embed\/|\/watch\?v=|\/v\/|youtu\.be\/|\/shorts\/)([a-zA-Z0-9_-]{11})/) || [])[1];
-    if (extractedId) {
-      if (format && format.startsWith('audio')) {
-        return res.redirect(`https://ytmp3.nu/?url=${encodeURIComponent(url)}`);
-      } else {
-        return res.redirect(`https://cobalt.tools/`);
-      }
-    }
-    return res.redirect(url);
+  if (!pythonCmd) {
+    console.warn('Python runtime not found on system.');
+    return res.status(503).json({
+      error: 'Direct audio/video transcoding requires Python runtime. TikTok downloads are directly supported on this server. For YouTube/Spotify MP3/MP4, please run locally or install Python.'
+    });
   }
 
-  // Local environment with Python + yt-dlp + ffmpeg
+  // 3. Transcode and stream via yt-dlp + ffmpeg
   const tempId = `dl_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   let tempOut;
   let args = [];
   let expectedFile;
   let mimeType;
   let downloadFilename;
+  const ytDlpBase = getYtDlpBaseArgs();
 
   if (format === 'audio_128k') {
     tempOut = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.%(ext)s`);
@@ -345,7 +366,7 @@ app.get('/api/download/stream', async (req, res) => {
     mimeType = 'audio/mpeg';
     downloadFilename = `${safeTitle}_128kbps.mp3`;
     args = [
-      '-m', 'yt_dlp',
+      ...ytDlpBase,
       '--ffmpeg-location', ffmpeg,
       '-x',
       '--audio-format', 'mp3',
@@ -360,7 +381,7 @@ app.get('/api/download/stream', async (req, res) => {
     mimeType = 'audio/mpeg';
     downloadFilename = `${safeTitle}_320kbps.mp3`;
     args = [
-      '-m', 'yt_dlp',
+      ...ytDlpBase,
       '--ffmpeg-location', ffmpeg,
       '-x',
       '--audio-format', 'mp3',
@@ -375,7 +396,7 @@ app.get('/api/download/stream', async (req, res) => {
     mimeType = 'video/mp4';
     downloadFilename = `${safeTitle}.mp4`;
     args = [
-      '-m', 'yt_dlp',
+      ...ytDlpBase,
       '--ffmpeg-location', ffmpeg,
       '-f', 'bv*[height<=720]+ba/b[height<=720]/best',
       '--merge-output-format', 'mp4',
@@ -388,7 +409,6 @@ app.get('/api/download/stream', async (req, res) => {
   }
 
   console.log(`Starting real conversion & download (${format}) for: ${safeTitle}`);
-  const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
 
   try {
     const proc = spawn(pythonCmd, args);
@@ -396,11 +416,7 @@ app.get('/api/download/stream', async (req, res) => {
     proc.on('error', (err) => {
       console.error('yt-dlp spawn process error:', err.message);
       if (!res.headersSent) {
-        if (format && format.startsWith('audio')) {
-          return res.redirect(`https://ytmp3.nu/?url=${encodeURIComponent(url)}`);
-        } else {
-          return res.redirect(`https://cobalt.tools/`);
-        }
+        return res.status(500).json({ error: `Conversion process failed: ${err.message}` });
       }
     });
 
@@ -411,11 +427,7 @@ app.get('/api/download/stream', async (req, res) => {
       if (code !== 0 || !fs.existsSync(expectedFile)) {
         console.error('yt-dlp processing error:', stderrOutput);
         if (!res.headersSent) {
-          if (format && format.startsWith('audio')) {
-            return res.redirect(`https://ytmp3.nu/?url=${encodeURIComponent(url)}`);
-          } else {
-            return res.redirect(`https://cobalt.tools/`);
-          }
+          return res.status(500).json({ error: 'Failed to process media file. YouTube may be restricting access or format is unavailable.' });
         }
         return;
       }
@@ -439,11 +451,7 @@ app.get('/api/download/stream', async (req, res) => {
     });
   } catch (err) {
     if (!res.headersSent) {
-      if (format && format.startsWith('audio')) {
-        return res.redirect(`https://ytmp3.nu/?url=${encodeURIComponent(url)}`);
-      } else {
-        return res.redirect(`https://cobalt.tools/`);
-      }
+      return res.status(500).json({ error: `Server error during download: ${err.message}` });
     }
   }
 });

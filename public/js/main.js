@@ -741,9 +741,11 @@ async function handleMediaDownload(e) {
     if (authorEl) authorEl.innerText = data.author || "";
     if (thumbEl && data.thumbnail) thumbEl.src = data.thumbnail;
     
+    const safeName = (data.title || "media").replace(/[^\w\s.-]/gi, "").trim().replace(/\s+/g, "_") || "download";
     if (videoLink) {
       if (data.videoUrl) {
         videoLink.href = data.videoUrl;
+        videoLink.setAttribute("download", `${safeName}.mp4`);
         videoLink.style.display = 'flex';
         videoLink.onclick = () => showToast("Starting real MP4 video download...", "info");
       } else {
@@ -753,6 +755,7 @@ async function handleMediaDownload(e) {
     if (audio128Link) {
       if (data.audio128Url) {
         audio128Link.href = data.audio128Url;
+        audio128Link.setAttribute("download", `${safeName}_128k.mp3`);
         audio128Link.style.display = 'flex';
         audio128Link.onclick = () => showToast("Starting 128kbps MP3 download (compatible with old devices)...", "info");
       } else {
@@ -762,6 +765,7 @@ async function handleMediaDownload(e) {
     if (audio320Link) {
       if (data.audio320Url) {
         audio320Link.href = data.audio320Url;
+        audio320Link.setAttribute("download", `${safeName}_320k.mp3`);
         audio320Link.style.display = 'flex';
         audio320Link.onclick = () => showToast("Starting 320kbps HQ MP3 download...", "info");
       } else {
@@ -801,12 +805,15 @@ async function handleSpotify(e) {
     if (artistEl) artistEl.innerText = data.artist || "Artist";
     if (coverEl && data.cover) coverEl.src = data.cover;
 
+    const safeTrack = `${data.title || 'track'} - ${data.artist || 'artist'}`.replace(/[^\w\s.-]/gi, "").trim().replace(/\s+/g, "_") || "spotify_track";
     if (audio128Link) {
       audio128Link.href = data.audio128Url || "#";
+      audio128Link.setAttribute("download", `${safeTrack}_128k.mp3`);
       audio128Link.onclick = () => showToast("Downloading real 128kbps MP3 (compatible with old devices)...", "info");
     }
     if (audio320Link) {
       audio320Link.href = data.audio320Url || "#";
+      audio320Link.setAttribute("download", `${safeTrack}_320k.mp3`);
       audio320Link.onclick = () => showToast("Downloading real 320kbps HQ MP3...", "info");
     }
 
