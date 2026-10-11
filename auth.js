@@ -7,21 +7,38 @@
 const express = require('express');
 const crypto = require('crypto');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const router = express.Router();
 
-const DATA_DIR = path.join(__dirname, 'data');
+const BUNDLE_DATA_DIR = path.join(__dirname, 'data');
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const DATA_DIR = isServerless ? path.join(os.tmpdir(), 'omnitools_data') : BUNDLE_DATA_DIR;
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
-
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
 const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 
-// Active session tokens: token -> { userId, username, role, expiresAt }
+// Ensure data directory exists safely
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+} catch (err) {
+  console.warn('[AUTH] Could not create DATA_DIR on disk:', err.message);
+}
+
+// In serverless, seed from bundle if available
+if (isServerless) {
+  try {
+    const bundleUsers = path.join(BUNDLE_DATA_DIR, 'users.json');
+    if (fs.existsSync(bundleUsers) && !fs.existsSync(USERS_FILE)) {
+      fs.copyFileSync(bundleUsers, USERS_FILE);
+    }
+  } catch (_) {}
+}
+
+// In-memory cache for ultra-fast, zero-fail serverless operation
+let inMemoryUsers = null;
 const activeSessions = new Map();
 
 function loadSessions() {
@@ -45,7 +62,7 @@ function saveSessions() {
     const entries = Array.from(activeSessions.entries());
     fs.writeFileSync(SESSIONS_FILE, JSON.stringify(entries, null, 2), 'utf8');
   } catch (e) {
-    console.error('Error saving sessions.json:', e);
+    // Disk write error is non-fatal since activeSessions Map holds sessions in memory
   }
 }
 
@@ -77,36 +94,51 @@ function verifyPassword(password, salt, storedHash) {
 
 // Helper: Load users from file
 function loadUsers() {
-  try {
-    if (!fs.existsSync(USERS_FILE)) {
-      const defaultUser = {
-        id: 'usr_robshs',
-        username: 'RobsHs',
-        ...hashPassword('robshs123'),
-        role: 'Lead Architect & Developer',
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-      };
-      const initialUsers = [defaultUser];
-      fs.writeFileSync(USERS_FILE, JSON.stringify(initialUsers, null, 2), 'utf8');
-      return initialUsers;
-    }
-    const data = fs.readFileSync(USERS_FILE, 'utf8');
-    return JSON.parse(data) || [];
-  } catch (err) {
-    console.error('Error loading users.json:', err);
-    return [];
+  if (inMemoryUsers && inMemoryUsers.length > 0) {
+    return inMemoryUsers;
   }
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      const data = fs.readFileSync(USERS_FILE, 'utf8');
+      inMemoryUsers = JSON.parse(data) || [];
+      if (inMemoryUsers.length > 0) return inMemoryUsers;
+    }
+    // Fallback: check bundle if in serverless
+    const bundleUsers = path.join(BUNDLE_DATA_DIR, 'users.json');
+    if (fs.existsSync(bundleUsers)) {
+      const data = fs.readFileSync(bundleUsers, 'utf8');
+      inMemoryUsers = JSON.parse(data) || [];
+      if (inMemoryUsers.length > 0) {
+        saveUsers(inMemoryUsers);
+        return inMemoryUsers;
+      }
+    }
+  } catch (err) {
+    console.warn('[AUTH] Could not read users file:', err.message);
+  }
+
+  const defaultUser = {
+    id: 'usr_robshs',
+    username: 'RobsHs',
+    ...hashPassword('robshs123'),
+    role: 'Lead Architect & Developer',
+    createdAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
+  };
+  inMemoryUsers = [defaultUser];
+  saveUsers(inMemoryUsers);
+  return inMemoryUsers;
 }
 
 // Helper: Save users to file
 function saveUsers(users) {
+  inMemoryUsers = users;
   try {
     fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
     return true;
   } catch (err) {
-    console.error('Error saving users.json:', err);
-    return false;
+    console.warn('[AUTH] Disk write notice (in-memory preserved):', err.message);
+    return true;
   }
 }
 

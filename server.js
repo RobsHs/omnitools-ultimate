@@ -38,6 +38,27 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 // Serve frontend static assets from public/
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Serverless URL normalizer for Vercel / Cloud functions
+app.use((req, res, next) => {
+  if (req.url === '/' || req.url === '/index.html') {
+    return next();
+  }
+  const knownPrefixes = [
+    '/auth',
+    '/health',
+    '/download',
+    '/bypass',
+    '/upload',
+    '/ai',
+    '/proxy',
+    '/network',
+  ];
+  if (knownPrefixes.some((p) => req.url.startsWith(p))) {
+    req.url = '/api' + req.url;
+  }
+  next();
+});
+
 // Auth API routes
 app.use('/api/auth', authRouter);
 
@@ -209,7 +230,15 @@ app.get('/api/download/stream', async (req, res) => {
   }
 
   console.log(`Starting real conversion & download (${format}) for: ${safeTitle}`);
-  const proc = spawn('python', args);
+  const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+  const proc = spawn(pythonCmd, args);
+
+  proc.on('error', (err) => {
+    console.error('yt-dlp spawn process error:', err.message);
+    if (!res.headersSent) {
+      res.status(500).send(`Server media processing error: ${err.message}`);
+    }
+  });
 
   let stderrOutput = '';
   proc.stderr.on('data', (d) => { stderrOutput += d.toString(); });
