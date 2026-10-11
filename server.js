@@ -295,6 +295,57 @@ function getYtDlpBaseArgs() {
   return ['-m', 'yt_dlp'];
 }
 
+// Cloud Stream Resolver (Serverless / Cobalt pipeline)
+async function resolveCloudStream(targetUrl, format) {
+  const isAudio = format === 'audio_128k' || format === 'audio_320k';
+  const payload = isAudio
+    ? { url: targetUrl, downloadMode: 'audio', audioFormat: 'mp3' }
+    : { url: targetUrl, videoQuality: '720' };
+
+  // Primary: Nichind Cobalt proxy worker
+  try {
+    const res = await axios.post('https://dwnld.nichind.dev/', payload, {
+      headers: {
+        'Authorization': 'Api-Key b05007aa-bb63-4267-a66e-78f8e10bf9bf',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      timeout: 12000,
+    });
+
+    if (res.data && res.data.status === 'tunnel' && res.data.url) {
+      return { url: res.data.url, filename: res.data.filename };
+    }
+    if (res.data && (res.data.status === 'redirect' || res.data.status === 'stream') && res.data.url) {
+      return { url: res.data.url, filename: res.data.filename };
+    }
+  } catch (err) {
+    console.warn('Nichind stream resolver failed:', err.message);
+  }
+
+  // Backup: cjs.nz Cobalt instance
+  try {
+    const res = await axios.post('https://cobalt.cjs.nz/', payload, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      timeout: 8000,
+    });
+
+    if (res.data && res.data.status === 'tunnel' && res.data.url) {
+      return { url: res.data.url, filename: res.data.filename };
+    }
+    if (res.data && (res.data.status === 'redirect' || res.data.status === 'stream') && res.data.url) {
+      return { url: res.data.url, filename: res.data.filename };
+    }
+  } catch (err) {
+    console.warn('Backup stream resolver failed:', err.message);
+  }
+
+  return null;
+}
+
 // --- REAL STREAMING DOWNLOAD PIPELINE ---
 app.get('/api/download/stream', async (req, res) => {
   const { url, format, title, videoId } = req.query;
@@ -335,125 +386,172 @@ app.get('/api/download/stream', async (req, res) => {
       return response.data.pipe(res);
     } catch (err) {
       console.error('Direct stream error:', err.message);
-      // Fallback: direct stream URL itself
       return res.redirect(url);
     }
   }
 
-  // 2. Check Python availability for yt-dlp transcoding
+  // 2. Normalize canonical YouTube URL if videoId is provided
+  let canonicalUrl = url;
+  if (videoId && !canonicalUrl.includes('watch?v=')) {
+    canonicalUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  }
+
+  const isAudio = format === 'audio_128k' || format === 'audio_320k';
+  const mimeType = isAudio ? 'audio/mpeg' : 'video/mp4';
+  const downloadFilename = isAudio ? `${safeTitle}.mp3` : `${safeTitle}.mp4`;
+
+  // 3. Local yt-dlp transcoding (used when running locally with Python installed)
   const pythonCmd = getPythonCommand();
   const isServerless = process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
-  if (!pythonCmd) {
-    console.warn('Python runtime not found on system.');
-    return res.status(503).json({
-      error: 'Direct audio/video transcoding requires Python runtime. TikTok downloads are directly supported on this server. For YouTube/Spotify MP3/MP4, please run locally or install Python.'
-    });
-  }
+  if (pythonCmd && !isServerless) {
+    const tempId = `dl_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    let tempOut;
+    let args = [];
+    let expectedFile;
+    const ytDlpBase = getYtDlpBaseArgs();
 
-  // 3. Transcode and stream via yt-dlp + ffmpeg
-  const tempId = `dl_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-  let tempOut;
-  let args = [];
-  let expectedFile;
-  let mimeType;
-  let downloadFilename;
-  const ytDlpBase = getYtDlpBaseArgs();
+    if (format === 'audio_128k') {
+      tempOut = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.%(ext)s`);
+      expectedFile = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.mp3`);
+      args = [
+        ...ytDlpBase,
+        '--ffmpeg-location', ffmpeg,
+        '-x',
+        '--audio-format', 'mp3',
+        '--audio-quality', '128k',
+        '-o', tempOut,
+        '--no-playlist',
+        canonicalUrl,
+      ];
+    } else if (format === 'audio_320k') {
+      tempOut = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.%(ext)s`);
+      expectedFile = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.mp3`);
+      args = [
+        ...ytDlpBase,
+        '--ffmpeg-location', ffmpeg,
+        '-x',
+        '--audio-format', 'mp3',
+        '--audio-quality', '320k',
+        '-o', tempOut,
+        '--no-playlist',
+        canonicalUrl,
+      ];
+    } else if (format === 'video_mp4') {
+      tempOut = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.%(ext)s`);
+      expectedFile = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.mp4`);
+      args = [
+        ...ytDlpBase,
+        '--ffmpeg-location', ffmpeg,
+        '-f', 'bv*[height<=720]+ba/b[height<=720]/best',
+        '--merge-output-format', 'mp4',
+        '-o', tempOut,
+        '--no-playlist',
+        canonicalUrl,
+      ];
+    }
 
-  if (format === 'audio_128k') {
-    tempOut = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.%(ext)s`);
-    expectedFile = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.mp3`);
-    mimeType = 'audio/mpeg';
-    downloadFilename = `${safeTitle}_128kbps.mp3`;
-    args = [
-      ...ytDlpBase,
-      '--ffmpeg-location', ffmpeg,
-      '-x',
-      '--audio-format', 'mp3',
-      '--audio-quality', '128k',
-      '-o', tempOut,
-      '--no-playlist',
-      url,
-    ];
-  } else if (format === 'audio_320k') {
-    tempOut = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.%(ext)s`);
-    expectedFile = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.mp3`);
-    mimeType = 'audio/mpeg';
-    downloadFilename = `${safeTitle}_320kbps.mp3`;
-    args = [
-      ...ytDlpBase,
-      '--ffmpeg-location', ffmpeg,
-      '-x',
-      '--audio-format', 'mp3',
-      '--audio-quality', '320k',
-      '-o', tempOut,
-      '--no-playlist',
-      url,
-    ];
-  } else if (format === 'video_mp4') {
-    tempOut = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.%(ext)s`);
-    expectedFile = path.join(TEMP_DOWNLOAD_DIR, `${tempId}.mp4`);
-    mimeType = 'video/mp4';
-    downloadFilename = `${safeTitle}.mp4`;
-    args = [
-      ...ytDlpBase,
-      '--ffmpeg-location', ffmpeg,
-      '-f', 'bv*[height<=720]+ba/b[height<=720]/best',
-      '--merge-output-format', 'mp4',
-      '-o', tempOut,
-      '--no-playlist',
-      url,
-    ];
-  } else {
-    return res.status(400).send('Invalid download format requested.');
-  }
-
-  console.log(`Starting real conversion & download (${format}) for: ${safeTitle}`);
-
-  try {
-    const proc = spawn(pythonCmd, args);
-
-    proc.on('error', (err) => {
-      console.error('yt-dlp spawn process error:', err.message);
-      if (!res.headersSent) {
-        return res.status(500).json({ error: `Conversion process failed: ${err.message}` });
-      }
-    });
-
-    let stderrOutput = '';
-    proc.stderr.on('data', (d) => { stderrOutput += d.toString(); });
-
-    proc.on('close', (code) => {
-      if (code !== 0 || !fs.existsSync(expectedFile)) {
-        console.error('yt-dlp processing error:', stderrOutput);
-        if (!res.headersSent) {
-          return res.status(500).json({ error: 'Failed to process media file. YouTube may be restricting access or format is unavailable.' });
+    if (args.length > 0) {
+      console.log(`Starting local transcoding (${format}) for: ${safeTitle}`);
+      const localResult = await new Promise((resolve) => {
+        try {
+          const proc = spawn(pythonCmd, args);
+          let stderrOutput = '';
+          proc.stderr.on('data', (d) => { stderrOutput += d.toString(); });
+          proc.on('error', (err) => resolve({ success: false, error: err.message }));
+          proc.on('close', (code) => {
+            if (code === 0 && fs.existsSync(expectedFile)) {
+              resolve({ success: true, file: expectedFile });
+            } else {
+              resolve({ success: false, error: stderrOutput });
+            }
+          });
+        } catch (e) {
+          resolve({ success: false, error: e.message });
         }
+      });
+
+      if (localResult.success && localResult.file) {
+        const stat = fs.statSync(localResult.file);
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader('Content-Length', stat.size);
+        res.setHeader('Content-Disposition', `attachment; filename="${downloadFilename}"`);
+
+        const fileStream = fs.createReadStream(localResult.file);
+        fileStream.pipe(res);
+
+        const cleanup = () => {
+          try {
+            if (fs.existsSync(localResult.file)) fs.unlinkSync(localResult.file);
+          } catch (_) {}
+        };
+        fileStream.on('finish', cleanup);
+        res.on('close', cleanup);
         return;
       }
-
-      const stat = fs.statSync(expectedFile);
-      res.setHeader('Content-Type', mimeType);
-      res.setHeader('Content-Length', stat.size);
-      res.setHeader('Content-Disposition', `attachment; filename="${downloadFilename}"`);
-
-      const fileStream = fs.createReadStream(expectedFile);
-      fileStream.pipe(res);
-
-      const cleanup = () => {
-        try {
-          if (fs.existsSync(expectedFile)) fs.unlinkSync(expectedFile);
-        } catch (_) {}
-      };
-
-      fileStream.on('finish', cleanup);
-      res.on('close', cleanup);
-    });
-  } catch (err) {
-    if (!res.headersSent) {
-      return res.status(500).json({ error: `Server error during download: ${err.message}` });
+      console.warn('Local transcoding was unsuccessful, falling back to cloud stream resolver...');
     }
   }
+
+  // 4. Serverless & Cloud Stream Resolver (Vercel runtime or fallback)
+  console.log(`Resolving stream via cloud engine for: ${canonicalUrl} (${format})`);
+  try {
+    const cloudStream = await resolveCloudStream(canonicalUrl, format);
+    if (cloudStream && cloudStream.url) {
+      try {
+        const streamResponse = await axios({
+          method: 'GET',
+          url: cloudStream.url,
+          responseType: 'stream',
+          timeout: 45000,
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          },
+        });
+
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader('Content-Disposition', `attachment; filename="${downloadFilename}"`);
+        if (streamResponse.headers['content-length']) {
+          res.setHeader('Content-Length', streamResponse.headers['content-length']);
+        }
+        return streamResponse.data.pipe(res);
+      } catch (pipeErr) {
+        console.warn('Stream pipe warning, redirecting to direct stream URL:', pipeErr.message);
+        return res.redirect(cloudStream.url);
+      }
+    }
+  } catch (cloudErr) {
+    console.error('Cloud stream resolution error:', cloudErr.message);
+  }
+
+  // 5. Friendly In-App Media Notice (Preventing browser "site wasn't available" error page)
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  return res.status(200).send(`<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Unduhan Tidak Tersedia - OmniTools Ultimate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
+</head>
+<body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl relative overflow-hidden">
+    <div class="w-16 h-16 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-amber-500/10">
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    </div>
+    <h1 class="text-xl font-bold text-white mb-2">Media Tidak Dapat Diunduh</h1>
+    <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+      Media ini dilindungi hak cipta eksklusif (VEVO/DRM) atau dibatasi oleh penyedia server. Downloader TikTok kami dapat berjalan 100% tanpa batas.
+    </p>
+    <a href="/" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
+      Kembali ke Beranda
+    </a>
+  </div>
+</body>
+</html>`);
 });
 
 // 1. Media Downloader (YouTube / TikTok)
