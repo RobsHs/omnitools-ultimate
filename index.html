@@ -311,18 +311,24 @@
         <a
           href="#"
           onclick="switchTab('media-downloader', this)"
-          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          class="nav-item flex items-center justify-between px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
           data-target="media-downloader"
-          ><i class="ph ph-youtube-logo text-lg text-red-500"></i>
-          <span>Video Downloader</span></a
+          ><div class="flex items-center gap-3">
+            <i class="ph ph-video text-lg text-red-500"></i>
+            <span>Video Downloader</span>
+          </div>
+          <span class="text-[9px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded">Maint</span></a
         >
         <a
           href="#"
           onclick="switchTab('spotify-downloader', this)"
-          class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
+          class="nav-item flex items-center justify-between px-3 py-2 rounded-lg text-themeMuted hover:bg-themeInput hover:text-themeText text-sm transition-colors"
           data-target="spotify-downloader"
-          ><i class="ph ph-spotify-logo text-lg text-green-500"></i>
-          <span>Spotify Downloader</span></a
+          ><div class="flex items-center gap-3">
+            <i class="ph ph-spotify-logo text-lg text-green-500"></i>
+            <span>Spotify Downloader</span>
+          </div>
+          <span class="text-[9px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded">Maint</span></a
         >
         <a
           href="#"
@@ -727,19 +733,22 @@
                   <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
                     <i class="ph-fill ph-waveform text-2xl"></i>
                   </div>
-                  <span class="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/25">yt-dlp Streamer</span>
+                  <span class="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/25 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Maintenance Mode
+                  </span>
                 </div>
                 <h3 class="font-bold text-lg text-themeText tracking-tight mb-1.5">Media & Audio Stream Extraction</h3>
                 <p class="text-xs text-themeMuted leading-relaxed mb-5">
-                  Direct backend extraction for YouTube and TikTok. Offers genuine 128kbps MP3 for older legacy devices and 320kbps HD audio alongside 720p MP4.
+                  Layanan ekstraksi video dan audio sedang dalam tahap peningkatan server berkala. Fitur dinonaktifkan sementara untuk pemeliharaan sistem.
                 </p>
               </div>
               <div class="flex flex-wrap gap-2 pt-2">
-                <button onclick="navigateToTool('media-downloader')" class="bento-pill-btn">
-                  <i class="ph-fill ph-youtube-logo text-red-500"></i> Video Downloader
+                <button onclick="navigateToTool('media-downloader')" class="bento-pill-btn opacity-80">
+                  <i class="ph-fill ph-video text-red-500"></i> Video Downloader <span class="text-[9px] text-amber-500 ml-1 font-bold">(Maint)</span>
                 </button>
-                <button onclick="navigateToTool('spotify-downloader')" class="bento-pill-btn">
-                  <i class="ph-fill ph-spotify-logo text-emerald-500"></i> Spotify Audio
+                <button onclick="navigateToTool('spotify-downloader')" class="bento-pill-btn opacity-80">
+                  <i class="ph-fill ph-spotify-logo text-emerald-500"></i> Spotify Audio <span class="text-[9px] text-amber-500 ml-1 font-bold">(Maint)</span>
                 </button>
               </div>
             </div>
@@ -1049,111 +1058,90 @@
 
         <section id="media-downloader" class="tool-section hidden">
           <div
-            class="max-w-3xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 shadow-sm">
-            <h2 class="text-xl font-bold text-themeText mb-6">
-              <i class="ph-fill ph-youtube-logo text-red-500"></i> Video
-              Downloader
-            </h2>
-            <form onsubmit="handleMediaDownload(event)" class="flex gap-4 mb-6">
+            class="max-w-3xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 sm:p-8 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-bold text-themeText flex items-center gap-2">
+                <i class="ph-fill ph-video text-red-500"></i> Video Downloader
+              </h2>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Under Maintenance
+              </span>
+            </div>
+
+            <!-- Maintenance Notice Card -->
+            <div class="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-2xl p-6 sm:p-8 text-center mb-6 relative overflow-hidden">
+              <div class="w-16 h-16 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/10">
+                <i class="ph-fill ph-wrench text-3xl"></i>
+              </div>
+              <h3 class="font-bold text-lg text-themeText mb-2">Fitur Video Downloader Sedang Dalam Pemeliharaan</h3>
+              <p class="text-sm text-themeMuted max-w-lg mx-auto leading-relaxed mb-5">
+                Layanan ekstraksi video (YouTube / Media Downloader) sedang dalam proses peningkatan sistem & pemeliharaan server untuk mengoptimalkan kestabilan unduhan. Fitur ini dinonaktifkan sementara dan akan segera kembali aktif.
+              </p>
+              <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-themeInput border border-themeBorder text-xs text-themeMuted font-mono">
+                <i class="ph ph-info text-amber-500"></i> Fitur lain (AI Assistant, Link Bypasser, WHOIS, DNS Recon, dll) berfungsi normal
+              </div>
+            </div>
+
+            <form onsubmit="handleMediaDownload(event)" class="flex gap-4 mb-2 opacity-60">
               <input
                 type="url"
                 id="media-input"
-                required
-                placeholder="Paste YouTube/TikTok URL..."
-                class="flex-1 bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 outline-none focus:border-red-500" /><button
+                disabled
+                placeholder="Fitur sedang dalam pemeliharaan (Under Maintenance)..."
+                class="flex-1 bg-themeInput border border-themeBorder text-themeMuted rounded-lg p-3 outline-none cursor-not-allowed" /><button
                 type="submit"
                 id="btn-media"
-                class="bg-red-500 hover:bg-red-600 text-white rounded-lg px-6 py-3 font-bold">
-                Fetch
+                disabled
+                class="bg-amber-600/50 text-white/70 rounded-lg px-6 py-3 font-bold cursor-not-allowed">
+                Maintenance
               </button>
             </form>
-            <div
-              id="media-result"
-              class="hidden border border-themeBorder rounded-xl overflow-hidden bg-themeInput flex flex-col sm:flex-row">
-              <img
-                id="media-thumbnail"
-                src="https://placehold.co/320x180/1e293b/ffffff?text=Video+Thumbnail"
-                class="w-full sm:w-48 object-cover" />
-              <div class="p-4 flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 class="font-bold text-themeText mb-1 text-base line-clamp-2" id="media-title">
-                    Sample Awesome Video Title
-                  </h3>
-                  <p class="text-xs text-themeMuted mb-3" id="media-author">Creator / Channel</p>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <a
-                    id="media-video-link"
-                    class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-sm transition-colors"
-                    href="#">
-                    <i class="ph ph-video-camera text-base"></i> MP4 Video
-                  </a>
-                  <a
-                    id="media-audio-128-link"
-                    class="bg-amber-600 hover:bg-amber-700 text-white py-2 px-3 rounded-lg font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-sm transition-colors"
-                    href="#">
-                    <i class="ph ph-speaker-simple-high text-base"></i> MP3 128k (Legacy)
-                  </a>
-                  <a
-                    id="media-audio-320-link"
-                    class="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-lg font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-sm transition-colors"
-                    href="#">
-                    <i class="ph ph-music-notes text-base"></i> MP3 320k (HQ)
-                  </a>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 
         <section id="spotify-downloader" class="tool-section hidden">
           <div
-            class="max-w-3xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 shadow-sm">
-            <h2 class="text-xl font-bold text-themeText mb-6">
-              <i class="ph-fill ph-spotify-logo text-green-500"></i> Spotify
-              Downloader
-            </h2>
-            <form onsubmit="handleSpotify(event)" class="flex gap-4 mb-6">
+            class="max-w-3xl mx-auto bg-themeSurface rounded-2xl border border-themeBorder p-6 sm:p-8 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-bold text-themeText flex items-center gap-2">
+                <i class="ph-fill ph-spotify-logo text-green-500"></i> Spotify Downloader
+              </h2>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Under Maintenance
+              </span>
+            </div>
+
+            <!-- Maintenance Notice Card -->
+            <div class="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-2xl p-6 sm:p-8 text-center mb-6 relative overflow-hidden">
+              <div class="w-16 h-16 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/10">
+                <i class="ph-fill ph-wrench text-3xl"></i>
+              </div>
+              <h3 class="font-bold text-lg text-themeText mb-2">Fitur Spotify Downloader Sedang Dalam Pemeliharaan</h3>
+              <p class="text-sm text-themeMuted max-w-lg mx-auto leading-relaxed mb-5">
+                Layanan konversi audio Spotify sedang dalam tahap pembaruan server dan optimalisasi kualitas bitrate audio. Fitur ini dinonaktifkan sementara dan akan segera kembali aktif.
+              </p>
+              <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-themeInput border border-themeBorder text-xs text-themeMuted font-mono">
+                <i class="ph ph-info text-amber-500"></i> Fitur lain (AI Assistant, Link Bypasser, WHOIS, DNS Recon, dll) berfungsi normal
+              </div>
+            </div>
+
+            <form onsubmit="handleSpotify(event)" class="flex gap-4 mb-2 opacity-60">
               <input
                 type="url"
                 id="spotify-input"
-                required
-                placeholder="Spotify Track URL..."
-                class="flex-1 bg-themeInput border border-themeBorder text-themeText rounded-lg p-3 outline-none focus:border-green-500" /><button
+                disabled
+                placeholder="Fitur sedang dalam pemeliharaan (Under Maintenance)..."
+                class="flex-1 bg-themeInput border border-themeBorder text-themeMuted rounded-lg p-3 outline-none cursor-not-allowed" /><button
                 type="submit"
                 id="btn-spotify"
-                class="bg-green-500 hover:bg-green-600 text-white rounded-lg px-6 py-3 font-bold">
-                Fetch
+                disabled
+                class="bg-amber-600/50 text-white/70 rounded-lg px-6 py-3 font-bold cursor-not-allowed">
+                Maintenance
               </button>
             </form>
-            <div
-              id="spotify-result"
-              class="hidden border border-themeBorder rounded-xl overflow-hidden bg-themeInput flex flex-col sm:flex-row items-center p-4 gap-4">
-              <img
-                id="spotify-cover"
-                src="https://placehold.co/100x100/1e293b/ffffff?text=Cover"
-                class="w-24 h-24 rounded-lg shadow object-cover shrink-0" />
-              <div class="flex-1 text-center sm:text-left">
-                <h3 class="font-bold text-themeText text-lg mb-1" id="spotify-title">
-                  Track Name
-                </h3>
-                <p class="text-sm text-themeMuted mb-3" id="spotify-artist">Artist Name</p>
-                <div class="flex flex-wrap gap-2 justify-center sm:justify-start">
-                  <a
-                    id="spotify-audio-128-link"
-                    class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors"
-                    href="#">
-                    <i class="ph ph-speaker-simple-high text-base"></i> Download 128kbps (Old Devices)
-                  </a>
-                  <a
-                    id="spotify-audio-320-link"
-                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors"
-                    href="#">
-                    <i class="ph ph-music-notes text-base"></i> Download 320kbps (HQ)
-                  </a>
-                </div>
-              </div>
-            </div>
+          </div>
         </section>
 
         <section id="public-image" class="tool-section hidden">

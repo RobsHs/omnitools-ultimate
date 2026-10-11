@@ -348,10 +348,10 @@ async function resolveCloudStream(targetUrl, format) {
 
 // --- REAL STREAMING DOWNLOAD PIPELINE ---
 app.get('/api/download/stream', async (req, res) => {
-  const { url, format, title, videoId } = req.query;
-  if (!url) {
-    return res.status(400).send('URL parameter is required.');
-  }
+  return res.status(503).json({
+    success: false,
+    error: 'Layanan unduhan media sedang dalam pemeliharaan (Under Maintenance).'
+  });
 
   const safeTitle = (title || 'media')
     .replace(/[^\w\s.-]/gi, '')
@@ -536,10 +536,10 @@ app.get('/api/download/stream', async (req, res) => {
 // 1. Media Downloader (YouTube / TikTok)
 app.post('/api/download/media', async (req, res) => {
   try {
-    const { url } = req.body;
-    if (!url) {
-      return res.status(400).json({ error: 'A valid URL is required.' });
-    }
+    return res.status(503).json({
+      success: false,
+      error: 'Fitur Video Downloader sedang dalam pemeliharaan (Under Maintenance). Silakan gunakan tool lainnya.'
+    });
 
     const cleanUrl = url.trim();
 
@@ -621,10 +621,10 @@ app.post('/api/download/media', async (req, res) => {
 // 2. Spotify Downloader
 app.post('/api/download/spotify', async (req, res) => {
   try {
-    const { url } = req.body;
-    if (!url) {
-      return res.status(400).json({ error: 'Spotify track URL is required.' });
-    }
+    return res.status(503).json({
+      success: false,
+      error: 'Fitur Spotify Downloader sedang dalam pemeliharaan (Under Maintenance). Silakan gunakan tool lainnya.'
+    });
 
     const cleanUrl = url.trim();
     if (!cleanUrl.includes('spotify.com')) {

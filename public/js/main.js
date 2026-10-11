@@ -786,116 +786,12 @@ async function downloadMediaBlob(streamUrl, filename, btnEl) {
 
 async function handleMediaDownload(e) {
   e.preventDefault();
-  const url = document.getElementById("media-input").value.trim();
-  const btn = document.getElementById("btn-media");
-  const resultBox = document.getElementById("media-result");
-  const titleEl = document.getElementById("media-title");
-  const authorEl = document.getElementById("media-author");
-  const thumbEl = document.getElementById("media-thumbnail");
-  const videoLink = document.getElementById("media-video-link");
-  const audio128Link = document.getElementById("media-audio-128-link");
-  const audio320Link = document.getElementById("media-audio-320-link");
-
-  const origBtnText = btn.innerHTML;
-  btn.innerHTML = `<span class="loader w-4 h-4 mr-1"></span> Fetching...`;
-  btn.disabled = true;
-
-  try {
-    const data = await api.getMediaDownloadInfo(url);
-    if (titleEl) titleEl.innerText = data.title || "Media Stream Found";
-    if (authorEl) authorEl.innerText = data.author || "";
-    if (thumbEl && data.thumbnail) thumbEl.src = data.thumbnail;
-    
-    const safeName = (data.title || "media").replace(/[^\w\s.-]/gi, "").trim().replace(/\s+/g, "_") || "download";
-    if (videoLink) {
-      if (data.videoUrl) {
-        videoLink.style.display = 'flex';
-        videoLink.onclick = (e) => {
-          e.preventDefault();
-          downloadMediaBlob(data.videoUrl, `${safeName}.mp4`, videoLink);
-        };
-      } else {
-        videoLink.style.display = 'none';
-      }
-    }
-    if (audio128Link) {
-      if (data.audio128Url) {
-        audio128Link.style.display = 'flex';
-        audio128Link.onclick = (e) => {
-          e.preventDefault();
-          downloadMediaBlob(data.audio128Url, `${safeName}_128k.mp3`, audio128Link);
-        };
-      } else {
-        audio128Link.style.display = 'none';
-      }
-    }
-    if (audio320Link) {
-      if (data.audio320Url) {
-        audio320Link.style.display = 'flex';
-        audio320Link.onclick = (e) => {
-          e.preventDefault();
-          downloadMediaBlob(data.audio320Url, `${safeName}_320k.mp3`, audio320Link);
-        };
-      } else {
-        audio320Link.style.display = 'none';
-      }
-    }
-
-    resultBox.classList.remove("hidden");
-    resultBox.classList.add("flex");
-    showToast("Real download streams ready!", "success");
-  } catch (err) {
-    showToast(err.message || "Failed to extract media", "error");
-  } finally {
-    btn.innerHTML = origBtnText;
-    btn.disabled = false;
-  }
+  showToast("Fitur Video Downloader sedang dalam pemeliharaan sistem (Under Maintenance).", "warning");
 }
 
 async function handleSpotify(e) {
   e.preventDefault();
-  const url = document.getElementById("spotify-input").value.trim();
-  const btn = document.getElementById("btn-spotify");
-  const resultBox = document.getElementById("spotify-result");
-  const titleEl = document.getElementById("spotify-title");
-  const artistEl = document.getElementById("spotify-artist");
-  const coverEl = document.getElementById("spotify-cover");
-  const audio128Link = document.getElementById("spotify-audio-128-link");
-  const audio320Link = document.getElementById("spotify-audio-320-link");
-
-  const origBtnText = btn.innerHTML;
-  btn.innerHTML = `<span class="loader w-4 h-4 mr-1"></span> Fetching...`;
-  btn.disabled = true;
-
-  try {
-    const data = await api.getSpotifyDownloadInfo(url);
-    if (titleEl) titleEl.innerText = data.title || "Track Title";
-    if (artistEl) artistEl.innerText = data.artist || "Artist";
-    if (coverEl && data.cover) coverEl.src = data.cover;
-
-    const safeTrack = `${data.title || 'track'} - ${data.artist || 'artist'}`.replace(/[^\w\s.-]/gi, "").trim().replace(/\s+/g, "_") || "spotify_track";
-    if (audio128Link) {
-      audio128Link.onclick = (e) => {
-        e.preventDefault();
-        downloadMediaBlob(data.audio128Url, `${safeTrack}_128k.mp3`, audio128Link);
-      };
-    }
-    if (audio320Link) {
-      audio320Link.onclick = (e) => {
-        e.preventDefault();
-        downloadMediaBlob(data.audio320Url, `${safeTrack}_320k.mp3`, audio320Link);
-      };
-    }
-
-    resultBox.classList.remove("hidden");
-    resultBox.classList.add("flex");
-    showToast("Spotify Track Ready to Download!", "success");
-  } catch (err) {
-    showToast(err.message || "Failed to fetch Spotify track", "error");
-  } finally {
-    btn.innerHTML = origBtnText;
-    btn.disabled = false;
-  }
+  showToast("Fitur Spotify Downloader sedang dalam pemeliharaan sistem (Under Maintenance).", "warning");
 }
 
 async function handleImageUpload(e) {
