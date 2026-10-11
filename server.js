@@ -531,41 +531,87 @@ app.post('/api/upload/image', upload.single('image'), async (req, res) => {
 // Engineered for Sub-Second Responses & High Concurrency
 // ==========================================
 
+let cachedGroqModel = null;
+
+async function getBestGroqModel(apiKey) {
+  if (cachedGroqModel) return cachedGroqModel;
+  const preferred = [
+    'qwen/qwen3.8-27b',
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
+    'llama-3.3-70b-versatile',
+    'llama-3.1-8b-instant',
+  ];
+  try {
+    const listRes = await axios.get('https://api.groq.com/openai/v1/models', {
+      headers: { Authorization: `Bearer ${apiKey.trim()}` },
+      timeout: 3000,
+    });
+    const available = new Set((listRes.data?.data || []).map((m) => m.id));
+    for (const m of preferred) {
+      if (available.has(m)) {
+        cachedGroqModel = m;
+        return m;
+      }
+    }
+    const anyText = (listRes.data?.data || []).find(
+      (m) => !m.id.includes('whisper') && !m.id.includes('guard')
+    );
+    if (anyText) {
+      cachedGroqModel = anyText.id;
+      return cachedGroqModel;
+    }
+  } catch (_) {}
+  cachedGroqModel = 'qwen/qwen3.8-27b';
+  return cachedGroqModel;
+}
+
 async function callFastAI({ systemPrompt, userPrompt, jsonMode = false }) {
-  // 1. Groq LPU (World's fastest inference: 800+ tok/sec, ~200-400ms, 14,400 free requests/day)
-  if (process.env.GROQ_API_KEY) {
-    try {
-      const groqRes = await axios.post(
-        'https://api.groq.com/openai/v1/chat/completions',
-        {
-          model: 'llama-3.3-70b-versatile',
+  // 1. Groq LPU (World's fastest inference: 800+ tok/sec, ~150-400ms, 14,400 free requests/day)
+  const groqKey = process.env.GROQ_API_KEY?.trim();
+  if (groqKey) {
+    const modelsToTry = [await getBestGroqModel(groqKey), 'qwen/qwen3.8-27b', 'openai/gpt-oss-120b'];
+    const uniqueModels = [...new Set(modelsToTry)];
+
+    for (const model of uniqueModels) {
+      try {
+        const payload = {
+          model,
           messages: [
             ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
             { role: 'user', content: userPrompt },
           ],
-          temperature: 0.2,
+          temperature: 0.1,
           max_tokens: 2048,
-          ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.GROQ_API_KEY.trim()}`,
-            'Content-Type': 'application/json',
-          },
-          timeout: 6000,
+        };
+        if (jsonMode) {
+          payload.response_format = { type: 'json_object' };
         }
-      );
-      const text = groqRes.data?.choices?.[0]?.message?.content;
-      if (text) {
-        return { text, provider: 'Groq LPU (Ultra-Fast)' };
+
+        const groqRes = await axios.post(
+          'https://api.groq.com/openai/v1/chat/completions',
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${groqKey}`,
+              'Content-Type': 'application/json',
+            },
+            timeout: 6000,
+          }
+        );
+        const text = groqRes.data?.choices?.[0]?.message?.content;
+        if (text && text.trim().length > 0) {
+          return { text: text.trim(), provider: `Groq LPU (${model.split('/').pop()})` };
+        }
+      } catch (err) {
+        console.warn(`Groq Inference with ${model} failed, trying next:`, err.response?.data?.error?.message || err.message);
       }
-    } catch (err) {
-      console.warn('Groq Inference failed, falling back:', err.message);
     }
   }
 
   // 2. OpenRouter Free / Custom Engine
-  if (process.env.OPENROUTER_API_KEY) {
+  const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
+  if (openRouterKey) {
     try {
       const orRes = await axios.post(
         'https://openrouter.ai/api/v1/chat/completions',
@@ -580,7 +626,7 @@ async function callFastAI({ systemPrompt, userPrompt, jsonMode = false }) {
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY.trim()}`,
+            Authorization: `Bearer ${openRouterKey}`,
             'Content-Type': 'application/json',
           },
           timeout: 6000,
@@ -588,7 +634,7 @@ async function callFastAI({ systemPrompt, userPrompt, jsonMode = false }) {
       );
       const text = orRes.data?.choices?.[0]?.message?.content;
       if (text) {
-        return { text, provider: 'OpenRouter Neural Engine' };
+        return { text: text.trim(), provider: 'OpenRouter Neural Engine' };
       }
     } catch (err) {
       console.warn('OpenRouter Inference failed, falling back:', err.message);
@@ -596,9 +642,10 @@ async function callFastAI({ systemPrompt, userPrompt, jsonMode = false }) {
   }
 
   // 3. Google Gemini 3.5 Flash-Lite (Optimized ~1s inference, 1500 req/day free)
-  if (process.env.GEMINI_API_KEY) {
+  const geminiKey = process.env.GEMINI_API_KEY?.trim();
+  if (geminiKey) {
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY.trim() });
+      const ai = new GoogleGenAI({ apiKey: geminiKey });
       const promptCombined = systemPrompt ? `${systemPrompt}\n\nTask:\n${userPrompt}` : userPrompt;
 
       let response;
@@ -622,7 +669,7 @@ async function callFastAI({ systemPrompt, userPrompt, jsonMode = false }) {
       }
 
       if (response && response.text) {
-        return { text: response.text, provider: 'Gemini 3.5 Flash-Lite' };
+        return { text: response.text.trim(), provider: 'Gemini 3.5 Flash-Lite' };
       }
     } catch (err) {
       console.warn('Gemini Inference failed, falling back:', err.message);
@@ -634,7 +681,7 @@ async function callFastAI({ systemPrompt, userPrompt, jsonMode = false }) {
     const pollUrl = `https://text.pollinations.ai/${encodeURIComponent(userPrompt.substring(0, 180))}?model=mistral&system=${encodeURIComponent((systemPrompt || '').substring(0, 180))}`;
     const pollRes = await axios.get(pollUrl, { timeout: 3500 });
     if (pollRes.data && typeof pollRes.data === 'string' && pollRes.data.length > 5) {
-      return { text: pollRes.data, provider: 'Pollinations AI (Free Unlimited)' };
+      return { text: pollRes.data.trim(), provider: 'Pollinations AI (Free Unlimited)' };
     }
   } catch (_) {}
 
@@ -780,24 +827,39 @@ Return a valid, strict JSON object with NO surrounding markdown backticks or com
       let rawText = aiResult.text.trim();
       rawText = rawText.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
 
+      let parsed = null;
       try {
-        const parsed = JSON.parse(rawText);
+        parsed = JSON.parse(rawText);
+      } catch (_) {
+        const jsonMatch = rawText.match(/\{[\s\S]*"regex"[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            parsed = JSON.parse(jsonMatch[0]);
+          } catch (_) {}
+        }
+      }
+
+      if (parsed && parsed.regex) {
+        let regPattern = parsed.regex.trim();
+        if (!regPattern.startsWith('/') && !regPattern.includes('/')) {
+          regPattern = `/${regPattern}/`;
+        }
         return res.json({
           success: true,
-          regex: parsed.regex || '/.*/',
+          regex: regPattern,
           explanation: parsed.explanation || 'Regex generated successfully.',
           engine: aiResult.provider,
         });
-      } catch (_) {
-        // Match regex inside output if not strict JSON
-        const regMatch = rawText.match(/\/.*?\/[a-z]*/);
-        return res.json({
-          success: true,
-          regex: regMatch ? regMatch[0] : rawText,
-          explanation: rawText,
-          engine: aiResult.provider,
-        });
       }
+
+      // Match regex inside output if not strict JSON
+      const regMatch = rawText.match(/\/(?:[^\/\\]|\\.)+\/[gimsuy]*/);
+      return res.json({
+        success: true,
+        regex: regMatch ? regMatch[0] : `/${rawText.split('\n')[0].replace(/[\/`]/g, '')}/`,
+        explanation: rawText,
+        engine: aiResult.provider,
+      });
     }
 
     // High-speed rule-based heuristic fallback
