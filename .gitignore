@@ -20,3 +20,4 @@ Thumbs.db
 
 .vercel
 .env*
+*-player-script.js

@@ -79,22 +79,145 @@ if (!fs.existsSync(TEMP_DOWNLOAD_DIR)) {
   fs.mkdirSync(TEMP_DOWNLOAD_DIR, { recursive: true });
 }
 
-// Helper: Real TikTok resolver without watermark
+// Helper: Generate TikTok device & client params
+function generateTiktokDeviceId() {
+  const prefix = "7";
+  let random = "";
+  for (let i = 0; i < 18; i++) {
+    random += Math.floor(Math.random() * 10);
+  }
+  return `${prefix}${random}`;
+}
+
+function generateRandomChar(charset, length) {
+  let res = "";
+  for (let i = 0; i < length; i++) {
+    res += charset[Math.floor(Math.random() * charset.length)];
+  }
+  return res;
+}
+
+function buildTiktokParams(awemeId) {
+  return new URLSearchParams({
+    aweme_id: awemeId,
+    version_name: "1.1.9",
+    version_code: "2018111632",
+    build_number: "1.1.9",
+    device_id: generateTiktokDeviceId(),
+    iid: generateTiktokDeviceId(),
+    manifest_version_code: "2018111632",
+    update_version_code: "2018111632",
+    openudid: generateRandomChar("0123456789abcdef", 16),
+    uuid: generateRandomChar("1234567890", 16),
+    _rticket: Date.now() * 1000,
+    ts: Date.now(),
+    device_brand: "Google",
+    device_type: "Pixel 4",
+    device_platform: "android",
+    resolution: "1080*1920",
+    dpi: 420,
+    os_version: "10",
+    os_api: "29",
+    carrier_region: "US",
+    sys_region: "US",
+    region: "US",
+    timezone_name: "America/New_York",
+    timezone_offset: "-14400",
+    channel: "googleplay",
+    ac: "wifi",
+    mcc_mnc: "310260",
+    is_my_cn: 0,
+    ssmix: "a",
+    as: "a1qwert123",
+    cp: "cbfhckdckkde1"
+  }).toString();
+}
+
+// Helper: Real TikTok resolver without watermark via official mobile cluster
 async function resolveTikTok(url) {
+  let cleanUrl = url.trim();
+  let videoId = null;
+
+  // 1. Direct ID extraction from URL (e.g. /video/7106594312292453678)
+  const idMatch = cleanUrl.match(/(?:video\/|v\/|embed\/|\/t\/)(\d{17,21})/i) || cleanUrl.match(/(\d{17,21})/);
+  if (idMatch) {
+    videoId = idMatch[1];
+  } else {
+    // 2. If short link (vt.tiktok.com or vm.tiktok.com), follow redirect
+    try {
+      const redirected = await axios.get(cleanUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+        },
+        maxRedirects: 5,
+        timeout: 8000,
+        validateStatus: () => true
+      });
+      const finalUrl = redirected.request?.res?.responseUrl || cleanUrl;
+      const finalMatch = finalUrl.match(/(?:video\/|v\/|embed\/|\/t\/)(\d{17,21})/i) || finalUrl.match(/(\d{17,21})/);
+      if (finalMatch) {
+        videoId = finalMatch[1];
+      }
+    } catch (_) {}
+  }
+
+  // 3. If videoId found, query official TikTok mobile API (no Cloudflare, direct high quality streams)
+  if (videoId) {
+    const apiHosts = [
+      'https://api16-normal-useast5.tiktokv.us',
+      'https://api22-normal-c-useast1a.tiktokv.com',
+      'https://api16-normal-c-alisg.tiktokv.com'
+    ];
+    for (const host of apiHosts) {
+      try {
+        const feedUrl = `${host}/aweme/v1/feed/?${buildTiktokParams(videoId)}`;
+        const res = await axios({
+          method: 'OPTIONS',
+          url: feedUrl,
+          headers: {
+            'User-Agent': 'com.zhiliaoapp.musically/300904 (2018111632; U; Android 10; en_US; Pixel 4; Build/QQ3A.200805.001; Cronet/58.0.2991.0)'
+          },
+          timeout: 8000
+        });
+
+        if (res.data && res.data.aweme_list && res.data.aweme_list.length > 0) {
+          const item = res.data.aweme_list.find(v => v.aweme_id === videoId) || res.data.aweme_list[0];
+          const title = item.desc || 'TikTok Video';
+          const author = item.author?.nickname || item.author?.unique_id || 'TikTok Creator';
+          const thumbnail = item.video?.cover?.url_list?.[0] || item.video?.origin_cover?.url_list?.[0] || '';
+          const videoUrl = item.video?.play_addr?.url_list?.[0] || item.video?.download_addr?.url_list?.[0] || null;
+          const audioUrl = item.music?.play_url?.url_list?.[0] || null;
+
+          if (videoUrl) {
+            return {
+              title,
+              author,
+              thumbnail,
+              videoUrl,
+              audioUrl
+            };
+          }
+        }
+      } catch (err) {
+        console.warn(`TikTok mobile API [${host}] error:`, err.message);
+      }
+    }
+  }
+
+  // Fallback: ssstik.io
   try {
     const res = await axios.post(
       'https://ssstik.io/abc?url=dl',
-      'id=' + encodeURIComponent(url) + '&locale=en&tt=0',
+      'id=' + encodeURIComponent(cleanUrl) + '&locale=en&tt=0',
       {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
           Referer: 'https://ssstik.io/en',
           Origin: 'https://ssstik.io',
           'hx-request': 'true',
         },
-        timeout: 12000,
+        timeout: 6000,
       }
     );
     const html = res.data;
@@ -106,6 +229,7 @@ async function resolveTikTok(url) {
     if (downloadMatch && downloadMatch[1]) {
       return {
         title: titleMatch ? titleMatch[1].trim() : 'TikTok Video',
+        author: 'TikTok Creator',
         videoUrl: downloadMatch[1],
         audioUrl: audioMatch ? audioMatch[1] : null,
         thumbnail: thumbMatch ? thumbMatch[1] : '',
@@ -113,17 +237,27 @@ async function resolveTikTok(url) {
     }
   } catch (_) {}
 
-  // Fallback to official oembed
-  const oembed = await axios.get(
-    `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`,
-    { timeout: 8000 }
-  );
+  // Fallback: official oembed
+  try {
+    const oembed = await axios.get(
+      `https://www.tiktok.com/oembed?url=${encodeURIComponent(cleanUrl)}`,
+      { timeout: 5000 }
+    );
+    return {
+      title: oembed.data?.title || 'TikTok Video',
+      author: oembed.data?.author_name || 'TikTok Creator',
+      thumbnail: oembed.data?.thumbnail_url || '',
+      videoUrl: null,
+      audioUrl: null,
+    };
+  } catch (_) {}
+
   return {
-    title: oembed.data?.title || 'TikTok Video',
-    author: oembed.data?.author_name || 'TikTok Creator',
-    thumbnail: oembed.data?.thumbnail_url || '',
+    title: 'TikTok Video',
+    author: 'TikTok Creator',
+    thumbnail: '',
     videoUrl: null,
-    audioUrl: null,
+    audioUrl: null
   };
 }
 
@@ -138,7 +272,7 @@ app.get('/api/health', (req, res) => {
 
 // --- REAL STREAMING DOWNLOAD PIPELINE ---
 app.get('/api/download/stream', async (req, res) => {
-  const { url, format, title } = req.query;
+  const { url, format, title, videoId } = req.query;
   if (!url) {
     return res.status(400).send('URL parameter is required.');
   }
@@ -149,7 +283,7 @@ app.get('/api/download/stream', async (req, res) => {
     .replace(/\s+/g, '_')
     .substring(0, 80) || 'download';
 
-  // Direct proxy stream (for direct TikTok or CDN media)
+  // Direct proxy stream (for TikTok CDN, direct MP4 or direct MP3)
   if (format === 'direct') {
     try {
       const isAudio = req.query.isAudio === 'true';
@@ -162,9 +296,10 @@ app.get('/api/download/stream', async (req, res) => {
         responseType: 'stream',
         headers: {
           'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Referer': 'https://www.tiktok.com/',
         },
-        timeout: 30000,
+        timeout: 45000,
       });
 
       res.setHeader('Content-Type', mime);
@@ -175,11 +310,28 @@ app.get('/api/download/stream', async (req, res) => {
       return response.data.pipe(res);
     } catch (err) {
       console.error('Direct stream error:', err.message);
-      return res.status(502).send(`Error streaming direct media: ${err.message}`);
+      // Graceful fallback redirect directly to stream URL
+      return res.redirect(url);
     }
   }
 
-  // Real YouTube & Spotify download and conversion via yt-dlp + ffmpeg
+  // Check if running on Vercel / serverless environment
+  const isServerless = process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
+
+  // In Serverless / Vercel (where Python/ffmpeg cannot run locally)
+  if (isServerless) {
+    const extractedId = videoId || (url.match(/(?:v=|\/embed\/|\/watch\?v=|\/v\/|youtu\.be\/|\/shorts\/)([a-zA-Z0-9_-]{11})/) || [])[1];
+    if (extractedId) {
+      if (format && format.startsWith('audio')) {
+        return res.redirect(`https://ytmp3.nu/?url=${encodeURIComponent(url)}`);
+      } else {
+        return res.redirect(`https://cobalt.tools/`);
+      }
+    }
+    return res.redirect(url);
+  }
+
+  // Local environment with Python + yt-dlp + ffmpeg
   const tempId = `dl_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   let tempOut;
   let args = [];
@@ -237,44 +389,63 @@ app.get('/api/download/stream', async (req, res) => {
 
   console.log(`Starting real conversion & download (${format}) for: ${safeTitle}`);
   const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-  const proc = spawn(pythonCmd, args);
 
-  proc.on('error', (err) => {
-    console.error('yt-dlp spawn process error:', err.message);
-    if (!res.headersSent) {
-      res.status(500).send(`Server media processing error: ${err.message}`);
-    }
-  });
+  try {
+    const proc = spawn(pythonCmd, args);
 
-  let stderrOutput = '';
-  proc.stderr.on('data', (d) => { stderrOutput += d.toString(); });
-
-  proc.on('close', (code) => {
-    if (code !== 0 || !fs.existsSync(expectedFile)) {
-      console.error('yt-dlp processing error:', stderrOutput);
+    proc.on('error', (err) => {
+      console.error('yt-dlp spawn process error:', err.message);
       if (!res.headersSent) {
-        res.status(500).send('Download conversion failed on server.');
+        if (format && format.startsWith('audio')) {
+          return res.redirect(`https://ytmp3.nu/?url=${encodeURIComponent(url)}`);
+        } else {
+          return res.redirect(`https://cobalt.tools/`);
+        }
       }
-      return;
+    });
+
+    let stderrOutput = '';
+    proc.stderr.on('data', (d) => { stderrOutput += d.toString(); });
+
+    proc.on('close', (code) => {
+      if (code !== 0 || !fs.existsSync(expectedFile)) {
+        console.error('yt-dlp processing error:', stderrOutput);
+        if (!res.headersSent) {
+          if (format && format.startsWith('audio')) {
+            return res.redirect(`https://ytmp3.nu/?url=${encodeURIComponent(url)}`);
+          } else {
+            return res.redirect(`https://cobalt.tools/`);
+          }
+        }
+        return;
+      }
+
+      const stat = fs.statSync(expectedFile);
+      res.setHeader('Content-Type', mimeType);
+      res.setHeader('Content-Length', stat.size);
+      res.setHeader('Content-Disposition', `attachment; filename="${downloadFilename}"`);
+
+      const fileStream = fs.createReadStream(expectedFile);
+      fileStream.pipe(res);
+
+      const cleanup = () => {
+        try {
+          if (fs.existsSync(expectedFile)) fs.unlinkSync(expectedFile);
+        } catch (_) {}
+      };
+
+      fileStream.on('finish', cleanup);
+      res.on('close', cleanup);
+    });
+  } catch (err) {
+    if (!res.headersSent) {
+      if (format && format.startsWith('audio')) {
+        return res.redirect(`https://ytmp3.nu/?url=${encodeURIComponent(url)}`);
+      } else {
+        return res.redirect(`https://cobalt.tools/`);
+      }
     }
-
-    const stat = fs.statSync(expectedFile);
-    res.setHeader('Content-Type', mimeType);
-    res.setHeader('Content-Length', stat.size);
-    res.setHeader('Content-Disposition', `attachment; filename="${downloadFilename}"`);
-
-    const fileStream = fs.createReadStream(expectedFile);
-    fileStream.pipe(res);
-
-    const cleanup = () => {
-      try {
-        if (fs.existsSync(expectedFile)) fs.unlinkSync(expectedFile);
-      } catch (_) {}
-    };
-
-    fileStream.on('finish', cleanup);
-    res.on('close', cleanup);
-  });
+  }
 });
 
 // 1. Media Downloader (YouTube / TikTok)
@@ -347,9 +518,9 @@ app.post('/api/download/media', async (req, res) => {
         author: videoDetails.channel,
         duration: videoDetails.duration,
         thumbnail: videoDetails.thumbnail,
-        videoUrl: `/api/download/stream?url=${encodeURIComponent(cleanUrl)}&format=video_mp4&title=${encodeURIComponent(videoDetails.title)}`,
-        audio128Url: `/api/download/stream?url=${encodeURIComponent(cleanUrl)}&format=audio_128k&title=${encodeURIComponent(videoDetails.title)}`,
-        audio320Url: `/api/download/stream?url=${encodeURIComponent(cleanUrl)}&format=audio_320k&title=${encodeURIComponent(videoDetails.title)}`,
+        videoUrl: `/api/download/stream?url=${encodeURIComponent(cleanUrl)}&format=video_mp4&title=${encodeURIComponent(videoDetails.title)}&videoId=${videoId || ''}`,
+        audio128Url: `/api/download/stream?url=${encodeURIComponent(cleanUrl)}&format=audio_128k&title=${encodeURIComponent(videoDetails.title)}&videoId=${videoId || ''}`,
+        audio320Url: `/api/download/stream?url=${encodeURIComponent(cleanUrl)}&format=audio_320k&title=${encodeURIComponent(videoDetails.title)}&videoId=${videoId || ''}`,
       });
     }
 
@@ -379,7 +550,6 @@ app.post('/api/download/spotify', async (req, res) => {
     const trackData = await spotifyUrlInfo.getData(cleanUrl);
     const title = trackData.name;
     const artists = (trackData.artists || []).map((a) => a.name).join(', ') || 'Unknown Artist';
-    const cover = trackData.album?.images?.[0]?.url || trackData.coverArt?.sources?.[0]?.url || '';
 
     // 2. Fallback search on YouTube to locate audio stream
     const searchQuery = `${title} ${artists} audio`;
@@ -390,6 +560,7 @@ app.post('/api/download/spotify', async (req, res) => {
       throw new Error(`Could not locate audio match for "${title}" on YouTube.`);
     }
 
+    const cover = trackData.album?.images?.[0]?.url || trackData.coverArt?.sources?.[0]?.url || topVideo.thumbnail || '';
     const trackName = `${title} - ${artists}`;
 
     return res.json({
@@ -399,8 +570,8 @@ app.post('/api/download/spotify', async (req, res) => {
       cover,
       duration: topVideo.timestamp || '',
       youtubeUrl: topVideo.url,
-      audio128Url: `/api/download/stream?url=${encodeURIComponent(topVideo.url)}&format=audio_128k&title=${encodeURIComponent(trackName)}`,
-      audio320Url: `/api/download/stream?url=${encodeURIComponent(topVideo.url)}&format=audio_320k&title=${encodeURIComponent(trackName)}`,
+      audio128Url: `/api/download/stream?url=${encodeURIComponent(topVideo.url)}&format=audio_128k&title=${encodeURIComponent(trackName)}&videoId=${topVideo.videoId || ''}`,
+      audio320Url: `/api/download/stream?url=${encodeURIComponent(topVideo.url)}&format=audio_320k&title=${encodeURIComponent(trackName)}&videoId=${topVideo.videoId || ''}`,
     });
   } catch (error) {
     console.error('Spotify Downloader Error:', error);
