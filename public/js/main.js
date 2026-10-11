@@ -719,6 +719,71 @@ async function handleBypass(e) {
   }
 }
 
+// Safe & verified binary media downloader: prevents corrupted HTML saves
+async function downloadMediaBlob(streamUrl, filename, btnEl) {
+  if (!streamUrl || streamUrl === '#' || streamUrl.includes('undefined')) {
+    showToast('Tautan unduhan tidak tersedia.', 'error');
+    return;
+  }
+
+  const btn = btnEl;
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.innerHTML = `<span class="loader w-3.5 h-3.5 mr-1 inline-block"></span> Mengunduh...`;
+    btn.style.pointerEvents = 'none';
+  }
+
+  showToast(`Sedang memproses unduhan ${filename}...`, 'info');
+
+  try {
+    const response = await fetch(streamUrl);
+    if (!response.ok) {
+      let errorMsg = 'Gagal memproses unduhan.';
+      try {
+        const errJson = await response.json();
+        if (errJson && errJson.error) errorMsg = errJson.error;
+      } catch (_) {}
+      showToast(errorMsg, 'error');
+      return;
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      showToast('Media dibatasi oleh penyedia hak cipta (YouTube DRM).', 'error');
+      return;
+    }
+
+    const blob = await response.blob();
+    if (!blob || blob.size < 2000) {
+      showToast('File yang diterima kosong atau tidak valid.', 'error');
+      return;
+    }
+
+    const blobUrl = window.URL.createObjectURL(blob);
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.style.display = 'none';
+    downloadAnchor.href = blobUrl;
+    downloadAnchor.download = filename;
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    document.body.removeChild(downloadAnchor);
+
+    setTimeout(() => {
+      window.URL.revokeObjectURL(blobUrl);
+    }, 30000);
+
+    showToast(`Unduhan selesai! ${filename} tersimpan dan siap diputar.`, 'success');
+  } catch (err) {
+    console.error('Download error:', err);
+    showToast('Kesalahan jaringan saat mengunduh: ' + err.message, 'error');
+  } finally {
+    if (btn) {
+      btn.innerHTML = originalHtml;
+      btn.style.pointerEvents = 'auto';
+    }
+  }
+}
+
 async function handleMediaDownload(e) {
   e.preventDefault();
   const url = document.getElementById("media-input").value.trim();
@@ -744,30 +809,33 @@ async function handleMediaDownload(e) {
     const safeName = (data.title || "media").replace(/[^\w\s.-]/gi, "").trim().replace(/\s+/g, "_") || "download";
     if (videoLink) {
       if (data.videoUrl) {
-        videoLink.href = data.videoUrl;
-        videoLink.setAttribute("download", `${safeName}.mp4`);
         videoLink.style.display = 'flex';
-        videoLink.onclick = () => showToast("Starting real MP4 video download...", "info");
+        videoLink.onclick = (e) => {
+          e.preventDefault();
+          downloadMediaBlob(data.videoUrl, `${safeName}.mp4`, videoLink);
+        };
       } else {
         videoLink.style.display = 'none';
       }
     }
     if (audio128Link) {
       if (data.audio128Url) {
-        audio128Link.href = data.audio128Url;
-        audio128Link.setAttribute("download", `${safeName}_128k.mp3`);
         audio128Link.style.display = 'flex';
-        audio128Link.onclick = () => showToast("Starting 128kbps MP3 download (compatible with old devices)...", "info");
+        audio128Link.onclick = (e) => {
+          e.preventDefault();
+          downloadMediaBlob(data.audio128Url, `${safeName}_128k.mp3`, audio128Link);
+        };
       } else {
         audio128Link.style.display = 'none';
       }
     }
     if (audio320Link) {
       if (data.audio320Url) {
-        audio320Link.href = data.audio320Url;
-        audio320Link.setAttribute("download", `${safeName}_320k.mp3`);
         audio320Link.style.display = 'flex';
-        audio320Link.onclick = () => showToast("Starting 320kbps HQ MP3 download...", "info");
+        audio320Link.onclick = (e) => {
+          e.preventDefault();
+          downloadMediaBlob(data.audio320Url, `${safeName}_320k.mp3`, audio320Link);
+        };
       } else {
         audio320Link.style.display = 'none';
       }
@@ -807,14 +875,16 @@ async function handleSpotify(e) {
 
     const safeTrack = `${data.title || 'track'} - ${data.artist || 'artist'}`.replace(/[^\w\s.-]/gi, "").trim().replace(/\s+/g, "_") || "spotify_track";
     if (audio128Link) {
-      audio128Link.href = data.audio128Url || "#";
-      audio128Link.setAttribute("download", `${safeTrack}_128k.mp3`);
-      audio128Link.onclick = () => showToast("Downloading real 128kbps MP3 (compatible with old devices)...", "info");
+      audio128Link.onclick = (e) => {
+        e.preventDefault();
+        downloadMediaBlob(data.audio128Url, `${safeTrack}_128k.mp3`, audio128Link);
+      };
     }
     if (audio320Link) {
-      audio320Link.href = data.audio320Url || "#";
-      audio320Link.setAttribute("download", `${safeTrack}_320k.mp3`);
-      audio320Link.onclick = () => showToast("Downloading real 320kbps HQ MP3...", "info");
+      audio320Link.onclick = (e) => {
+        e.preventDefault();
+        downloadMediaBlob(data.audio320Url, `${safeTrack}_320k.mp3`, audio320Link);
+      };
     }
 
     resultBox.classList.remove("hidden");
